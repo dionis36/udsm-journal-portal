@@ -1,0 +1,1 @@
+.gemini/\nnode_modules/\n.env\n.env.*\ndist/\nbuild/\n.next/\n*.pdf\nbackend/storage/articles/*
