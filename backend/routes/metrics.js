@@ -82,4 +82,38 @@ module.exports = async function (fastify, opts) {
             return reply.code(500).send({ error: 'Bulk refresh failed' });
         }
     });
+
+    // GET /api/metrics/heatmap
+    // Returns aggregated readership data for Deck.gl / MapLibre
+    fastify.get('/metrics/heatmap', async (request, reply) => {
+        try {
+            const { event_type, journal_id } = request.query;
+            let query = `SELECT ST_X(geom::geometry) as lng, ST_Y(geom::geometry) as lat, SUM(weight) as weight FROM readership_heatmap_cache`;
+            const filters = [];
+            const params = [];
+            if (event_type) { params.push(event_type); filters.push(`event_type = $${params.length}`); }
+            if (journal_id) { params.push(journal_id); filters.push(`journal_id = $${params.length}`); }
+            if (filters.length > 0) query += ` WHERE ` + filters.join(' AND ');
+            query += ` GROUP BY 1, 2`;
+            const result = await fastify.db.query(query, params);
+
+            return reply.send({
+                type: 'FeatureCollection',
+                features: result.rows.map(row => ({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [parseFloat(row.lng), parseFloat(row.lat)]
+                    },
+                    properties: {
+                        weight: parseInt(row.weight)
+                    }
+                }))
+            });
+
+        } catch (error) {
+            fastify.log.error(error);
+            return reply.code(500).send({ error: 'Failed to fetch heatmap data' });
+        }
+    });
 };

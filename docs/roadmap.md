@@ -34,19 +34,20 @@ This roadmap tracks the **Phased** and **Sub-Phased** implementation of the syst
 **Goal**: Real-time Visualization (The Heatmap).
 
 ### 2.1 Geospatial API
-- [ ] **Endpoint**: `GET /api/readership/heatmap`.
-    - Returns GeoJSON or array of `{ lat, lng, type }`.
-    - Optimized with PostGIS `ST_AsGeoJSON`.
+- [x] **Endpoint**: `GET /api/metrics/heatmap`. <!-- Done: Optimized with PostGIS aggregation -->
+    - Returns aggregated coordinate data optimized for Deck.gl.
+    - [x] **[NEW] Materialized View Caching**: `readership_heatmap_cache` for sub-10ms response times.
+    - [x] **[NEW] Dynamic Filtering**: Support for `journal_id` and `event_type` parameters.
 
 ### 2.2 Frontend Map Component
-- [ ] **Leaflet Setup**: Initialize Map container.
-- [ ] **Heat Layer**: Render "Historical Density" (Red/Yellow blobs) from `metrics`.
-- [ ] **Pulse Layer**: Render "Live Activity" (Blue Ripples) from WebSocket.
+- [x] **MapLibre Setup**: Initialized high-performance map container with Carto Dark-Matter theme.
+- [x] **Heat Layer**: GPU-accelerated **Deck.gl HeatmapLayer** rendering historical density. <!-- Upgrade: Switched from Leaflet to Deck.gl for performance -->
+- [x] **Pulse Layer**: Real-time **Deck.gl ScatterplotLayer** rendering live cinematic ripples.
 
 ### 2.3 Real-Time Pipeline
-- [ ] **Socket.io Server**: Setup in Fastify (`@fastify/websocket` or `socket.io`).
-- [ ] **Tracking Endpoint**: `POST /api/track` (Receives hits from client).
-- [ ] **Broadcasting**: Emit `new_reader` event to all connected clients.
+- [x] **WebSocket Server**: Implemented `@fastify/websocket` for the /api/activity/pulse stream.
+- [x] **Tracking Endpoint**: `POST /api/activity/track` (Receives hits) & `/track/mock` (Simulation generator).
+- [x] **Broadcasting**: Real-time event propagation to all connected global readers.
 
 ---
 

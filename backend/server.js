@@ -7,6 +7,9 @@ fastify.register(require('@fastify/cors'), {
   origin: true // Allow all for hackathon; restrict in prod
 });
 
+// Register WebSockets
+fastify.register(require('@fastify/websocket'));
+
 // Register Swagger (OpenAPI)
 fastify.register(require('@fastify/swagger'), {
   swagger: {
@@ -40,6 +43,7 @@ fastify.register(require('./routes/journals'), { prefix: '/api/journals' });
 fastify.register(require('./routes/articles'), { prefix: '/api' });
 fastify.register(require('./routes/files'), { prefix: '/api' }); // PDF file serving
 fastify.register(require('./routes/metrics'), { prefix: '/api' }); // External metrics
+fastify.register(require('./routes/activity'), { prefix: '/api' }); // Live Pulse & Tracking
 
 // Root Route
 fastify.get('/', async (request, reply) => {
