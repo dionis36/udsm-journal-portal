@@ -4,6 +4,7 @@ import { use } from "react";
 import { Navbar } from "@/components/Navbar";
 import { PDFViewer } from "@/components/PDFViewer";
 import { ArticleMetrics } from "@/components/ArticleMetrics";
+import { ArticleStats } from "@/components/ArticleStats";
 import { useArticle } from "@/lib/api";
 import { ArrowLeft, Download } from "lucide-react";
 import Link from "next/link";
@@ -78,9 +79,10 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
                     </div>
                 </div>
 
-                {/* Article Metrics */}
-                <div className="mb-6">
+                {/* Article Metrics & Stats */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <ArticleMetrics articleId={id} />
+                    <ArticleStats articleId={id} />
                 </div>
 
                 {/* PDF Viewer */}

@@ -88,7 +88,13 @@ module.exports = async function (fastify, opts) {
     fastify.get('/metrics/heatmap', async (request, reply) => {
         try {
             const { event_type, journal_id } = request.query;
-            let query = `SELECT ST_X(geom::geometry) as lng, ST_Y(geom::geometry) as lat, SUM(weight) as weight FROM readership_heatmap_cache`;
+            let query = `
+                SELECT 
+                    ST_X(location_point::geometry) as lng, 
+                    ST_Y(location_point::geometry) as lat, 
+                    COUNT(*) as weight 
+                FROM readership_geodata`;
+
             const filters = [];
             const params = [];
             if (event_type) { params.push(event_type); filters.push(`event_type = $${params.length}`); }
@@ -114,6 +120,77 @@ module.exports = async function (fastify, opts) {
         } catch (error) {
             fastify.log.error(error);
             return reply.code(500).send({ error: 'Failed to fetch heatmap data' });
+        }
+    });
+
+    // GET /api/metrics/impact-summary
+    // Returns global aggregated counts for the map footer HUD
+    fastify.get('/metrics/impact-summary', async (request, reply) => {
+        try {
+            const query = `
+                SELECT 
+                    COUNT(*) as total_hits,
+                    COUNT(DISTINCT item_id) as total_articles,
+                    COUNT(DISTINCT country_name) as total_countries,
+                    AVG(session_duration) as avg_duration,
+                    COUNT(*) FILTER (WHERE event_type = 'download') as total_downloads
+                FROM readership_geodata
+            `;
+            const result = await fastify.db.query(query);
+            return reply.send(result.rows[0]);
+        } catch (error) {
+            fastify.log.error(error);
+            return reply.code(500).send({ error: 'Failed to fetch impact summary' });
+        }
+    });
+
+    // GET /api/metrics/top-regions
+    // Returns top countries and cities for the HUD overlay
+    fastify.get('/metrics/top-regions', async (request, reply) => {
+        try {
+            const query = `
+                SELECT 
+                    country_name, 
+                    city_name, 
+                    COUNT(*) as hits,
+                    MAX(timestamp) as last_hit,
+                    ST_X(ST_Centroid(ST_Collect(location_point::geometry))) as lng,
+                    ST_Y(ST_Centroid(ST_Collect(location_point::geometry))) as lat
+                FROM readership_geodata
+                GROUP BY country_name, city_name
+                ORDER BY hits DESC
+                LIMIT 10
+            `;
+            const result = await fastify.db.query(query);
+            return reply.send(result.rows);
+        } catch (error) {
+            fastify.log.error(error);
+            return reply.code(500).send({ error: 'Failed to fetch top regions' });
+        }
+    });
+
+    // GET /api/articles/:id/impact
+    // Returns geographical hits for a specific article
+    fastify.get('/articles/:id/impact', async (request, reply) => {
+        const { id } = request.params;
+        try {
+            const query = `
+                SELECT 
+                    ST_X(location_point::geometry) as lng, 
+                    ST_Y(location_point::geometry) as lat, 
+                    event_type,
+                    country_name,
+                    city_name,
+                    timestamp
+                FROM readership_geodata
+                WHERE item_id = $1
+                ORDER BY timestamp DESC
+            `;
+            const result = await fastify.db.query(query, [id]);
+            return reply.send(result.rows);
+        } catch (error) {
+            fastify.log.error(error);
+            return reply.code(500).send({ error: 'Failed to fetch article impact' });
         }
     });
 };

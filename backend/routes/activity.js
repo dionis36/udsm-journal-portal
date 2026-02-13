@@ -39,7 +39,7 @@ module.exports = async function (fastify, opts) {
     // Tracking Endpoint: Trigger a live ripple
     // In a real system, this would be called by the frontend or an archival hook
     fastify.post('/track', async (request, reply) => {
-        const { journal_id, article_id, lat, lng, event_type } = request.body;
+        const { journal_id, article_id, lat, lng, event_type, city_name, country_name, session_duration } = request.body;
 
         const event = {
             type: 'READERSHIP_HIT',
@@ -49,6 +49,8 @@ module.exports = async function (fastify, opts) {
                 lat: parseFloat(lat),
                 lng: parseFloat(lng),
                 event_type: event_type || 'view',
+                city_name: city_name || 'Autonomous Node',
+                country_name: country_name || 'Archival Network',
                 timestamp: new Date().toISOString()
             }
         };
@@ -59,9 +61,21 @@ module.exports = async function (fastify, opts) {
         // Also log to geodata table for heatmap persistence
         try {
             await fastify.db.query(
-                `INSERT INTO readership_geodata (journal_id, article_id, location_point, event_type) 
-                 VALUES ($1, $2, ST_SetSRID(ST_MakePoint($3, $4), 4326), $5)`,
-                [journal_id, article_id, lng, lat, event_type || 'view']
+                `INSERT INTO readership_geodata (
+                    journal_id, source_item_id, location_point, event_type, 
+                    city_name, country_name, session_duration
+                 ) 
+                 VALUES ($1, $2, ST_SetSRID(ST_MakePoint($3, $4), 4326), $5, $6, $7, $8)`,
+                [
+                    journal_id,
+                    article_id,
+                    lng,
+                    lat,
+                    event_type || 'view',
+                    city_name || null,
+                    country_name || null,
+                    session_duration || 0
+                ]
             );
         } catch (err) {
             fastify.log.error('Failed to log geodata:', err);

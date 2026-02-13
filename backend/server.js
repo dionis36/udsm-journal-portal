@@ -44,6 +44,7 @@ fastify.register(require('./routes/articles'), { prefix: '/api' });
 fastify.register(require('./routes/files'), { prefix: '/api' }); // PDF file serving
 fastify.register(require('./routes/metrics'), { prefix: '/api' }); // External metrics
 fastify.register(require('./routes/activity'), { prefix: '/api' }); // Live Pulse & Tracking
+fastify.register(require('./routes/tiles'), { prefix: '/api' }); // Vector Tiles
 
 // Root Route
 fastify.get('/', async (request, reply) => {
