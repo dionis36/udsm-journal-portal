@@ -1,1 +1,13 @@
-.gemini/\nnode_modules/\n.env\n.env.*\ndist/\nbuild/\n.next/\n*.pdf\nbackend/storage/articles/*
+.gemini/
+node_modules/
+.env
+.env.*
+dist/
+build/
+.next/
+*.pdf
+backend/storage/articles/*
+backend/scripts/node_modules/
+frontend/node_modules/
+.DS_Store
+Thumbs.db
