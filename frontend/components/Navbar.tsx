@@ -20,18 +20,41 @@ export function Navbar() {
 
                     {/* Desktop Menu */}
                     <div className="hidden md:block">
-                        <div className="ml-10 flex items-baseline space-x-8">
-                            <Link href="/" className="hover:text-udsm-gold px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <div className="ml-10 flex items-center space-x-6">
+                            <Link href="/" className="hover:text-udsm-gold px-2 py-2 text-sm font-bold uppercase tracking-tight transition-colors">
                                 Home
                             </Link>
-                            <Link href="/journals" className="hover:text-udsm-gold px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                                Journals
+                            <Link href="/journals/tjpsd" className="hover:text-udsm-gold px-2 py-2 text-sm font-bold uppercase tracking-tight transition-colors">
+                                Current
                             </Link>
-                            <Link href="/about" className="hover:text-udsm-gold px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                                About
+                            <Link href="/archives" className="hover:text-udsm-gold px-2 py-2 text-sm font-bold uppercase tracking-tight transition-colors">
+                                Archives
                             </Link>
-                            <Link href="/contact" className="hover:text-udsm-gold px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                                Contact
+
+                            {/* About Dropdown */}
+                            <div className="relative group">
+                                <button className="hover:text-udsm-gold px-2 py-2 text-sm font-bold uppercase tracking-tight transition-colors flex items-center gap-1">
+                                    About
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                </button>
+                                <div className="absolute left-0 mt-0 w-56 bg-white rounded-lg shadow-xl py-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 transform origin-top scale-95 group-hover:scale-100 z-50 border border-gray-100">
+                                    <Link href="/about" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-udsm-blue/5 hover:text-udsm-blue font-medium transition-colors">
+                                        About the Journal
+                                    </Link>
+                                    <Link href="/about/submissions" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-udsm-blue/5 hover:text-udsm-blue font-medium transition-colors">
+                                        Submissions
+                                    </Link>
+                                    <Link href="/about/privacy" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-udsm-blue/5 hover:text-udsm-blue font-medium transition-colors">
+                                        Privacy Statement
+                                    </Link>
+                                    <Link href="/about/contact" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-udsm-blue/5 hover:text-udsm-blue font-medium transition-colors">
+                                        Contact
+                                    </Link>
+                                </div>
+                            </div>
+
+                            <Link href="/search" className="hover:text-udsm-gold px-2 py-2 text-sm font-bold uppercase tracking-tight transition-colors">
+                                Search
                             </Link>
                         </div>
                     </div>

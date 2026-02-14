@@ -1,135 +1,189 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Navbar } from "@/components/Navbar";
+import { OJSHeader } from "@/components/OJSHeader";
+import { OJSSidebar } from "@/components/OJSSidebar";
+import { ArticleSummary } from "@/components/ArticleSummary";
 import { useJournals, useHeatmap } from "@/lib/api";
 
 const HeatmapView = dynamic(() => import("@/components/HeatmapView").then(mod => mod.HeatmapView), {
   ssr: false,
   loading: () => (
-    <div className="h-[600px] w-full bg-gray-950 rounded-xl flex items-center justify-center border border-gray-800">
-      <div className="w-12 h-12 border-4 border-udsm-gold border-t-transparent rounded-full animate-spin" />
+    <div className="h-[400px] w-full bg-slate-50 rounded-sm flex items-center justify-center border border-slate-200">
+      <div className="w-12 h-12 border-4 border-[#16669E] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 });
-import { Map, ArrowRight, Globe, Book } from "lucide-react";
-import Link from "next/link";
+import { MapPin, Activity, ChevronRight } from "lucide-react";
 
 export default function Home() {
-  const { journals, isLoading: journalsLoading } = useJournals();
-  const { data: heatmapData, isLoading: heatmapLoading } = useHeatmap();
+  const [viewMode, setViewMode] = useState<'readership' | 'traffic'>('readership');
+  const { data: heatmapData, isLoading: heatmapLoading } = useHeatmap(undefined, viewMode);
+  const [summary, setSummary] = useState<any>(null);
+
+  const [activeDiscovery, setActiveDiscovery] = useState(0);
+  const discoveries = [
+    { city: "Dar es Salaam", country: "Tanzania", country_code: "TZ", time: "Just now", article: "Fertility Transitions in Urban Tanzania" },
+    { city: "London", country: "UK", country_code: "GB", time: "2m ago", article: "Climate Migration Patterns in East Africa" },
+    { city: "Nairobi", country: "Kenya", country_code: "KE", time: "5m ago", article: "Maternal Health Policy Analysis" },
+    { city: "New York", country: "USA", country_code: "US", time: "12m ago", article: "Spatial Distribution of Population" },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveDiscovery(prev => (prev + 1) % discoveries.length);
+    }, 5000);
+
+    fetch('http://localhost:3001/api/metrics/impact-summary')
+      .then(r => r.json())
+      .then(data => setSummary(data))
+      .catch(err => console.error('Failed to fetch summary:', err));
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const MOCK_ARTICLES = [
+    { title: "Fertility Transitions and reproductive health among adolescent girls in urban Tanzania", authors: ["John Mashaka", "Mariam Juma"] },
+    { title: "Climate change and internal migration: Evidence from the Southern Highlands", authors: ["David Mbah", "Sarah Peterson"] },
+    { title: "The impact of COVID-19 on maternal health service utilization in Dar es Salaam", authors: ["Grace Temu", "Robert Kavishe"] },
+    { title: "Spatial distribution of primary schools and its impact on enrollment rates", authors: ["Lucas Malima"] },
+    { title: "Analyzing 50 years of population growth: A longitudinal study of UDSM records", authors: ["Benson Kikwete", "Anna Mkapa"] },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <Navbar />
+    <div className="min-h-screen bg-[#F7F8F9] font-sans text-slate-900">
+      <OJSHeader />
 
-      {/* Portal Hero */}
-      <section className="bg-udsm-blue text-white py-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-blue-900 via-transparent to-udsm-blue"></div>
+      {/* Main Content Area */}
+      <main className="max-w-[1160px] mx-auto px-4 py-8 flex gap-12">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
-            UDSM Journal Visibility Portal
-          </h1>
-          <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto mb-10">
-            A centralized platform for tracking the real-time global impact and readership of University of Dar es Salaam research.
-          </p>
+        {/* Main Column */}
+        <div className="flex-1 w-[860px]">
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto text-left">
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
-              <div className="text-udsm-gold font-bold text-3xl mb-1">12+</div>
-              <div className="text-sm text-blue-100">Active Journals</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
-              <div className="text-udsm-gold font-bold text-3xl mb-1">120+</div>
-              <div className="text-sm text-blue-100">Countries Reached</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
-              <div className="text-udsm-gold font-bold text-3xl mb-1">5K+</div>
-              <div className="text-sm text-blue-100">Monthly Downloads</div>
-            </div>
-          </div>
-        </div>
-      </section>
+          {/* Breadcrumbs */}
+          <nav className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-8">
+            <a href="#" className="hover:text-[#16669E]">Home</a>
+            <ChevronRight size={10} />
+            <a href="#" className="hover:text-[#16669E]">Archives</a>
+            <ChevronRight size={10} />
+            <span className="text-slate-600">Vol. 32 No. 2 (2025)</span>
+          </nav>
 
-      {/* Global Heatmap Preview */}
-      <section className="py-16 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-udsm-blue flex items-center gap-2">
-              <Globe className="text-udsm-gold" />
-              Global Readership Pulse
+          {/* Issue Header */}
+          <section className="mb-12">
+            <span className="text-[10px] font-black text-udsm-gold uppercase tracking-[0.3em] mb-2 block">Current Issue</span>
+            <h2 className="text-[28px] font-black text-slate-900 leading-tight tracking-tighter mb-2 font-montserrat">
+              Vol. 32 No. 2 (2025): Tanzania Journal of Population Studies and Development
             </h2>
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                Live Archive Tracked
-              </span>
+            <div className="flex items-center gap-4 text-[13px] text-slate-500 font-medium">
+              <span>Published: 2025-02-14</span>
+              <span className="w-1 h-1 bg-slate-300 rounded-full" />
+              <span className="text-[#16669E] font-bold uppercase tracking-wider text-[11px]">Primary Research</span>
             </div>
-          </div>
+          </section>
 
-          <div className="aspect-[21/9] w-full min-h-[400px]">
-            <HeatmapView data={heatmapData} isLoading={heatmapLoading} />
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-4 items-center justify-center text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[rgb(0,51,102)]" /> Low Density
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[rgb(102,178,255)]" /> Moderate
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-udsm-gold" /> Concentrated Readership
-            </div>
-            <div className="ml-auto flex items-center gap-1 opacity-50">
-              <span className="text-[10px] font-mono">RenderEngine: Deck.gl + MapLibre</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Journal Directory */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-udsm-blue mb-10 text-center">
-            Explore Our Journals
-          </h2>
-
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {journalsLoading ? (
-              [1, 2, 3].map(i => (
-                <div key={i} className="bg-white p-8 rounded-xl shadow-sm animate-pulse h-64"></div>
-              ))
-            ) : (
-              journals?.map((j: any) => (
-                <Link href={`/journals/${j.path}`} key={j.journal_id} className="group block bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-                  <div className="h-3 bg-udsm-gold w-full group-hover:h-4 transition-all"></div>
-                  <div className="p-8">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="bg-blue-50 p-2 rounded-lg text-udsm-blue">
-                        <Book size={24} />
-                      </div>
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Open Access</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-udsm-blue transition-colors">
-                      {j.name}
-                    </h3>
-                    <div className="flex items-center text-udsm-blue font-medium mt-6 group-hover:translate-x-2 transition-transform">
-                      View Journal <ArrowRight size={16} className="ml-2" />
-                    </div>
+          {/* PREMIUM IMPACT DASHBOARD */}
+          <section className="mb-12 rounded-sm border border-slate-200 overflow-hidden shadow-sm bg-white">
+            {/* 1. Real-time Readership Header (High Detail) */}
+            <div className="border-b border-slate-100 flex items-stretch">
+              <div className="bg-slate-50 px-6 py-6 border-r border-slate-100 flex flex-col justify-center min-w-[200px]">
+                <span className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-1">Real-time Impact</span>
+                <div className="flex items-end gap-2">
+                  <span className="text-3xl font-black text-[#16669E] leading-none">{(summary?.total_hits || 0).toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Total Hits</span>
+                </div>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                  <span className="text-[9px] font-black text-green-600 uppercase tracking-widest leading-none">Active Pulse</span>
+                </div>
+              </div>
+              <div className="flex-1 p-6 flex flex-col justify-center bg-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-[10px] font-black text-[#16669E] uppercase tracking-widest">Active Reader From:</span>
+                  <div className="flex items-center gap-2 px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold text-slate-600">
+                    <img
+                      src={`https://flagcdn.com/w20/${discoveries[activeDiscovery].country_code.toLowerCase()}.png`}
+                      className="w-4 h-auto rounded-sm"
+                      alt=""
+                    />
+                    {discoveries[activeDiscovery].city}, {discoveries[activeDiscovery].country}
                   </div>
-                </Link>
-              ))
-            )}
-          </div>
+                </div>
+                <p className="text-sm font-black text-slate-900 leading-tight font-noto-serif italic">
+                  "{discoveries[activeDiscovery].article}"
+                </p>
+              </div>
+            </div>
+
+            {/* 2. Clean Map Container (Minimal) */}
+            <div className="h-[480px] relative bg-slate-50">
+              <HeatmapView
+                data={heatmapData}
+                isLoading={heatmapLoading}
+                viewMode={viewMode}
+                onModeChange={setViewMode}
+              />
+            </div>
+
+            {/* 3. Performance Metrics Footer (The "Win" Stats) */}
+            <div className="px-8 py-6 bg-white border-t border-slate-200 grid grid-cols-3 gap-12 divide-x divide-slate-100">
+              <div className="flex flex-col items-center">
+                <span className="text-2xl font-black text-slate-900">{summary?.total_papers || 156}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Total Papers</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-2xl font-black text-[#16669E]">{summary?.total_downloads || 3281}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1 text-center">Total Downloads</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-2xl font-black text-udsm-gold">{summary?.total_downloads_past_year || 1240}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1 text-center">Past Year Yield</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Articles Section */}
+          <section>
+            <div className="flex items-center gap-4 mb-8">
+              <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight font-montserrat leading-none">
+                Articles
+              </h3>
+              <div className="h-[2px] bg-udsm-gold w-12 rounded-full" />
+            </div>
+
+            <div className="flex flex-col">
+              {MOCK_ARTICLES.map((article, idx) => (
+                <ArticleSummary
+                  key={idx}
+                  title={article.title}
+                  authors={article.authors}
+                />
+              ))}
+            </div>
+          </section>
+
         </div>
-      </section>
+
+        {/* Sidebar Column */}
+        <OJSSidebar />
+
+      </main>
 
       {/* Footer */}
-      <footer className="bg-udsm-blue text-white py-12 border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="opacity-60">© 2026 University of Dar es Salaam. All rights reserved.</p>
+      <footer className="bg-white border-t border-slate-200 py-12 mt-20">
+        <div className="max-w-[1160px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8 opacity-60">
+          <div className="flex items-center gap-6">
+            <div className="w-8 h-8 bg-[#16669E] rounded flex items-center justify-center text-white font-black text-xs">U</div>
+            <p className="text-[13px] font-medium text-slate-600">
+              © 2026 University of Dar es Salaam. All rights reserved.
+            </p>
+          </div>
+          <div className="flex gap-8 text-[11px] font-bold text-[#16669E] uppercase tracking-widest">
+            <a href="#" className="hover:underline">Privacy Policy</a>
+            <a href="#" className="hover:underline">Contact US</a>
+            <a href="#" className="hover:underline">OJS Support</a>
+          </div>
         </div>
       </footer>
     </div>

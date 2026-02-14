@@ -87,20 +87,31 @@ module.exports = async function (fastify, opts) {
     // Returns aggregated readership data for Deck.gl / MapLibre
     fastify.get('/metrics/heatmap', async (request, reply) => {
         try {
-            const { event_type, journal_id } = request.query;
+            const { event_type, journal_id, scope } = request.query;
             let query = `
                 SELECT 
                     ST_X(location_point::geometry) as lng, 
                     ST_Y(location_point::geometry) as lat, 
+                    country_name,
+                    country_code,
+                    city_name,
                     COUNT(*) as weight 
                 FROM readership_geodata`;
 
             const filters = [];
             const params = [];
+
+            if (scope === 'traffic') {
+                filters.push(`event_type IN ('historical_baseline', 'visit')`);
+            } else if (scope === 'readership') {
+                filters.push(`event_type IN ('view', 'download')`);
+            }
+
             if (event_type) { params.push(event_type); filters.push(`event_type = $${params.length}`); }
             if (journal_id) { params.push(journal_id); filters.push(`journal_id = $${params.length}`); }
+
             if (filters.length > 0) query += ` WHERE ` + filters.join(' AND ');
-            query += ` GROUP BY 1, 2`;
+            query += ` GROUP BY 1, 2, 3, 4, 5`;
             const result = await fastify.db.query(query, params);
 
             return reply.send({
@@ -112,7 +123,10 @@ module.exports = async function (fastify, opts) {
                         coordinates: [parseFloat(row.lng), parseFloat(row.lat)]
                     },
                     properties: {
-                        weight: parseInt(row.weight)
+                        weight: parseInt(row.weight),
+                        country: row.country_name,
+                        country_code: row.country_code,
+                        city: row.city_name
                     }
                 }))
             });
@@ -120,6 +134,36 @@ module.exports = async function (fastify, opts) {
         } catch (error) {
             fastify.log.error(error);
             return reply.code(500).send({ error: 'Failed to fetch heatmap data' });
+        }
+    });
+
+    // GET /api/metrics/location-events
+    // Returns detailed latest events for a specific location
+    fastify.get('/metrics/location-events', async (request, reply) => {
+        const { lng, lat } = request.query;
+        try {
+            // Tight 500m radius for specific point matching
+            const result = await fastify.db.query(`
+                SELECT 
+                    rg.event_id,
+                    rg.event_type,
+                    rg.timestamp,
+                    pa.title as article_title,
+                    pa.authors as article_authors,
+                    rg.city_name,
+                    rg.country_name,
+                    rg.country_code
+                FROM readership_geodata rg
+                LEFT JOIN platform_articles pa ON rg.item_id = pa.item_id
+                WHERE ST_DWithin(rg.location_point::geography, ST_MakePoint($1, $2)::geography, 500)
+                ORDER BY rg.timestamp DESC
+                LIMIT 5
+            `, [parseFloat(lng), parseFloat(lat)]);
+
+            return reply.send(result.rows);
+        } catch (error) {
+            fastify.log.error(error);
+            return reply.code(500).send({ error: 'Failed to fetch location details' });
         }
     });
 

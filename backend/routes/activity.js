@@ -39,13 +39,14 @@ module.exports = async function (fastify, opts) {
     // Tracking Endpoint: Trigger a live ripple
     // In a real system, this would be called by the frontend or an archival hook
     fastify.post('/track', async (request, reply) => {
-        const { journal_id, article_id, lat, lng, event_type, city_name, country_name, session_duration } = request.body;
+        const { journal_id, article_id, lat, lng, event_type, city_name, country_name, session_duration, article_title } = request.body;
 
         const event = {
             type: 'READERSHIP_HIT',
             payload: {
                 journal_id,
                 article_id,
+                article_title: article_title || 'General Access',
                 lat: parseFloat(lat),
                 lng: parseFloat(lng),
                 event_type: event_type || 'view',

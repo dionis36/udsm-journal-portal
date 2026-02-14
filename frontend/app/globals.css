@@ -10,8 +10,10 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-udsm-blue: #003366;
-  --color-udsm-gold: #FFCC00;
+  --font-montserrat: var(--font-montserrat);
+  --font-noto-serif: var(--font-noto-serif);
+  --color-udsm-blue: #16669E;
+  --color-udsm-gold: #F7BC4A;
 }
 
 @media (prefers-color-scheme: dark) {

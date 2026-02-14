@@ -19,6 +19,7 @@ import { use, useState } from "react";
 export default function JournalPage({ params }: { params: Promise<{ path: string }> }) {
     const { path } = use(params);
     const [page, setPage] = useState(1);
+    const [viewMode, setViewMode] = useState<'readership' | 'traffic'>('readership');
     const limit = 10;
 
     const { journal, isLoading: journalLoading } = useJournal(path);
@@ -285,7 +286,12 @@ export default function JournalPage({ params }: { params: Promise<{ path: string
                     </div>
 
                     <div className="aspect-[21/9] w-full min-h-[500px] shadow-2xl rounded-2xl overflow-hidden ring-1 ring-gray-200">
-                        <HeatmapView data={heatmapData} isLoading={heatmapLoading} />
+                        <HeatmapView
+                            data={heatmapData}
+                            isLoading={heatmapLoading}
+                            viewMode={viewMode}
+                            onModeChange={setViewMode}
+                        />
                     </div>
 
                     <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">

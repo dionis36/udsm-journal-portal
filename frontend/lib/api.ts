@@ -43,10 +43,9 @@ export function useArticle(id: string) {
     };
 }
 
-export function useHeatmap(journalId?: number) {
-    const url = journalId
-        ? `${API_BASE}/metrics/heatmap?journal_id=${journalId}`
-        : `${API_BASE}/metrics/heatmap`;
+export function useHeatmap(journalId?: number, scope: 'readership' | 'traffic' = 'readership') {
+    let url = `${API_BASE}/metrics/heatmap?scope=${scope}`;
+    if (journalId) url += `&journal_id=${journalId}`;
 
     const { data, error, isLoading } = useSWR(url, fetcher, {
         refreshInterval: 30000 // Refresh every 30 seconds
@@ -61,29 +60,78 @@ export function useHeatmap(journalId?: number) {
 export function usePulse(onEvent: (event: any) => void) {
     const WS_URL = 'ws://localhost:3001/api/activity/pulse';
     const ws = useRef<WebSocket | null>(null);
+    const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
+        let isMounted = true;
+
         const connect = () => {
-            ws.current = new WebSocket(WS_URL);
+            if (!isMounted) return;
 
-            ws.current.onmessage = (e: MessageEvent) => {
-                try {
-                    const data = JSON.parse(e.data);
-                    if (data.type === 'READERSHIP_HIT') {
-                        onEvent(data.payload);
-                    }
-                } catch (err) {
-                    console.error('WS Parse Error:', err);
+            // Avoid overlapping connections
+            if (ws.current) {
+                if (ws.current.readyState === WebSocket.OPEN || ws.current.readyState === WebSocket.CONNECTING) {
+                    return;
                 }
-            };
+            }
 
-            ws.current.onclose = () => {
-                setTimeout(connect, 5000); // Reconnect after 5s
-            };
+            try {
+                console.log(`[Pulse] Connecting to ${WS_URL}...`);
+                ws.current = new WebSocket(WS_URL);
+
+                ws.current.onopen = () => {
+                    if (isMounted) console.log('[Pulse] Connection established.');
+                };
+
+                ws.current.onmessage = (e: MessageEvent) => {
+                    if (!isMounted) return;
+                    try {
+                        const data = JSON.parse(e.data);
+                        if (data.type === 'READERSHIP_HIT') {
+                            onEvent(data.payload);
+                        }
+                    } catch (err) {
+                        console.error('[Pulse] Parse Error:', err);
+                    }
+                };
+
+                ws.current.onclose = (event) => {
+                    if (isMounted) {
+                        console.warn(`[Pulse] Connection closed (${event.code}). Reconnecting in 5s...`);
+                        reconnectTimer.current = setTimeout(connect, 5000);
+                    }
+                };
+
+                ws.current.onerror = (err) => {
+                    // Log the full event for diagnostics
+                    console.error('[Pulse] Connection Error details:', {
+                        timestamp: new Date().toISOString(),
+                        url: WS_URL,
+                        readyState: ws.current?.readyState
+                    });
+                    ws.current?.close();
+                };
+            } catch (err) {
+                console.error('[Pulse] Critical Setup Error:', err);
+                if (isMounted) {
+                    reconnectTimer.current = setTimeout(connect, 5000);
+                }
+            }
         };
 
         connect();
-        return () => ws.current?.close();
+
+        return () => {
+            isMounted = false;
+            console.log('[Pulse] Cleaning up connection...');
+            if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+            if (ws.current) {
+                ws.current.onclose = null;
+                ws.current.onerror = null;
+                ws.current.onopen = null;
+                ws.current.close();
+            }
+        };
     }, [onEvent]);
 
     return ws.current;
