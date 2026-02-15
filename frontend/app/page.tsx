@@ -30,6 +30,7 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [manualSelection, setManualSelection] = useState<any>(null);
+  const [cameraFocusMode, setCameraFocusMode] = useState(false); // Default: OFF (Indicator only)
 
   const { events: discoveries, mutate: mutateFeed } = useActivityFeed();
 
@@ -42,7 +43,7 @@ export default function Home() {
     if (isPlaying && !manualSelection && discoveries && discoveries.length > 0) {
       timer = setInterval(() => {
         setActiveIndex(prev => (prev + 1) % discoveries.length);
-      }, 5000);
+      }, 8000); // 4s Travel + 4s Dwell
     }
     return () => clearInterval(timer);
   }, [isPlaying, manualSelection, discoveries?.length]);
@@ -244,7 +245,7 @@ export default function Home() {
                 </div>
 
                 {/* Progress Bar for Auto-Feed */}
-                {isPlaying && discoveries && discoveries.length > 0 && <div className="h-0.5 w-full bg-slate-100 overflow-hidden"><div className="h-full bg-udsm-gold animate-[progress_5s_linear_infinite]" /></div>}
+                {isPlaying && discoveries && discoveries.length > 0 && <div className="h-0.5 w-full bg-slate-100 overflow-hidden"><div className="h-full bg-udsm-gold animate-[progress_8s_linear_infinite]" /></div>}
               </div>
             </div>
 
@@ -258,6 +259,8 @@ export default function Home() {
                 activeLocation={activeItem ? { lat: activeItem.lat, lng: activeItem.lng } : null}
                 activeLocationDetails={activeItem}
                 onLocationSelect={handleMapInteraction}
+                cameraFocusMode={cameraFocusMode}
+                onToggleCameraFocus={() => setCameraFocusMode(!cameraFocusMode)}
                 feedControls={{
                   isPlaying,
                   onPlayPause: () => setIsPlaying(!isPlaying),

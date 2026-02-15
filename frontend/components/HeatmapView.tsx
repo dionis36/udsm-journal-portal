@@ -35,6 +35,8 @@ interface HeatmapViewProps {
     activeLocation?: { lat: number; lng: number } | null;
     activeLocationDetails?: any;
     onLocationSelect?: (location: any) => void;
+    cameraFocusMode?: boolean;
+    onToggleCameraFocus?: () => void;
     feedControls?: {
         isPlaying: boolean;
         onPlayPause: () => void;
@@ -52,9 +54,9 @@ interface Ripple {
 }
 
 const INITIAL_VIEW_STATE = {
-    longitude: 0,
-    latitude: 20,
-    zoom: 1.8,
+    longitude: 15.0,
+    latitude: 10.0,
+    zoom: 0.8,
     pitch: 0,
     bearing: 0,
     transitionDuration: 0
@@ -63,7 +65,7 @@ const INITIAL_VIEW_STATE = {
 const DARK_MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 const LIGHT_MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 
-export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLocation, activeLocationDetails, onLocationSelect, feedControls }: HeatmapViewProps) {
+export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLocation, activeLocationDetails, onLocationSelect, feedControls, cameraFocusMode, onToggleCameraFocus }: HeatmapViewProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -135,25 +137,6 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
         setIsDeviceReady(true);
     }, []);
 
-
-
-    // Sync Map to Active Location (DISABLED for user control)
-    /*
-    useEffect(() => {
-        if (activeLocation) {
-            viewStateRef.current = {
-                ...viewStateRef.current,
-                longitude: activeLocation.lng,
-                latitude: activeLocation.lat,
-                zoom: 8,
-                transitionDuration: 2000,
-                transitionInterpolator: new FlyToInterpolator()
-            };
-            forceUpdate({});
-        }
-    }, [activeLocation]);
-    */
-
     const COLOR_RANGES = useMemo(() => {
         // Theme-aware colors
         if (mapTheme === 'dark') {
@@ -162,24 +145,52 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
                 traffic: [[0, 204, 204], [102, 255, 255], [0, 255, 153]]
             };
         }
-        // Light theme needs darker/richer colors to stand out against white
         return {
             readership: [[245, 124, 0], [211, 47, 47], [194, 24, 91]],
             traffic: [[0, 150, 136], [0, 121, 107], [0, 77, 64]]
         };
     }, [mapTheme]);
+
     const [gpuDevice, setGpuDevice] = useState<any>(null);
 
-    // Initial ViewState setup
+    // Initial ViewState setup: Full World Overview (Refining to Zoom 0.8)
     const initialViewState = useMemo(() => ({
-        longitude: 34.8888,
-        latitude: -6.3690,
-        zoom: 4.5,
+        longitude: 15.0,
+        latitude: 10.0,
+        zoom: 0.8, // Whole World View
         pitch: 0,
         bearing: 0
     }), []);
 
     const [tileVersion] = useState(Date.now());
+
+    // RESET TO GLOBAL: Zoom out when Camera Focus is toggled OFF
+    useEffect(() => {
+        if (!cameraFocusMode && mounted) {
+            viewStateRef.current = {
+                ...viewStateRef.current,
+                ...initialViewState,
+                transitionDuration: 3000,
+                transitionInterpolator: new FlyToInterpolator({ speed: 0.8, curve: 1.0 })
+            };
+            forceUpdate({});
+        }
+    }, [cameraFocusMode, initialViewState, mounted]);
+
+    // Sync Map to Active Location with Smooth FlyTo (Only if Camera Focus Mode is ON)
+    useEffect(() => {
+        if (activeLocation && cameraFocusMode && (feedControls?.isPlaying || feedControls?.hasManualSelection)) {
+            viewStateRef.current = {
+                ...viewStateRef.current,
+                longitude: activeLocation.lng,
+                latitude: activeLocation.lat,
+                zoom: 3.0, // MUCH more subtle focus (keeping global context)
+                transitionDuration: 4000,
+                transitionInterpolator: new FlyToInterpolator({ speed: 0.6, curve: 1.0 })
+            };
+            forceUpdate({});
+        }
+    }, [activeLocation, cameraFocusMode, feedControls?.isPlaying, feedControls?.hasManualSelection]);
 
     // Layers memoization
     const layers = useMemo(() => {
@@ -445,6 +456,16 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
                         )}
                     </>
                 )}
+                <button
+                    onClick={onToggleCameraFocus}
+                    className={`p-2 backdrop-blur-md border rounded-lg transition-all shadow-sm ${cameraFocusMode
+                        ? 'bg-udsm-gold border-udsm-gold text-udsm-blue shadow-[0_0_12px_rgba(247,188,74,0.4)]'
+                        : (mapTheme === 'dark' ? 'bg-black/40 border-white/10 text-white/40 hover:text-white' : 'bg-white/80 border-slate-200 text-slate-400 hover:text-slate-900')
+                        }`}
+                    title={cameraFocusMode ? 'Disable Camera Focus' : 'Enable Camera Focus'}
+                >
+                    <Zap size={14} className={cameraFocusMode ? 'fill-current' : ''} />
+                </button>
                 <button
                     onClick={() => setMapTheme(prev => prev === 'dark' ? 'light' : 'dark')}
                     className={`p-2 backdrop-blur-md border rounded-lg transition-all shadow-sm ${mapTheme === 'dark' ? 'bg-black/40 border-white/10 text-white/60 hover:text-white' : 'bg-white/80 border-slate-200 text-slate-500 hover:text-slate-900'}`}
