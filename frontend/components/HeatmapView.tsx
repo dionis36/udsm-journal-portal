@@ -203,8 +203,8 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
                         radiusMaxPixels: 60,
                         pointRadiusUnits: 'pixels',
                         stroked: true,
-                        lineWidthMinPixels: 1,
-                        getLineColor: mapTheme === 'dark' ? [255, 255, 255, 50] : [0, 0, 0, 20]
+                        lineWidthMinPixels: 1.5,
+                        getLineColor: [255, 255, 255, 200] // Strong white halo
                     });
                 },
                 updateTriggers: {
