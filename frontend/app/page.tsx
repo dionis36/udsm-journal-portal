@@ -139,7 +139,7 @@ export default function Home() {
           </section>
 
           {/* PREMIUM IMPACT DASHBOARD */}
-          <section className="mb-12 rounded-sm border border-slate-200 overflow-hidden shadow-sm bg-white">
+          <section className="mb-12 rounded-xl border border-slate-200 overflow-hidden shadow-sm bg-white">
             {/* 1. Real-time Readership Header (High Detail & Controls) */}
             <div className="border-b border-slate-100 flex items-stretch">
               <div className="bg-slate-50 px-6 py-6 border-r border-slate-100 flex flex-col justify-center min-w-[200px]">
@@ -163,7 +163,7 @@ export default function Home() {
 
               {/* Active Content & Controls */}
               <div className="flex-1 p-0 flex flex-col relative group">
-                <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="absolute top-4 right-4 flex gap-1 transition-opacity duration-200">
                   <button onClick={handlePrev} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-[#16669E] transition-colors"><SkipBack size={14} /></button>
                   <button onClick={() => setIsPlaying(!isPlaying)} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-[#16669E] transition-colors">
                     {isPlaying ? <Pause size={14} /> : <Play size={14} />}
@@ -226,7 +226,7 @@ export default function Home() {
             </div>
 
             {/* 3. Performance Metrics Footer (The "Win" Stats) */}
-            <div className="px-8 py-6 bg-white border-t border-slate-200 grid grid-cols-3 gap-12 divide-x divide-slate-100">
+            <div className="px-8 py-6 bg-slate-50 border-t border-slate-200 grid grid-cols-3 gap-12 divide-x divide-slate-100">
               <div className="flex flex-col items-center">
                 <span className="text-2xl font-black text-slate-900">{summary?.total_papers || 156}</span>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Total Papers</span>
