@@ -83,7 +83,7 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
     const displayCountryName = useMemo(() => {
         if (!activeLocationDetails) return '';
         const { country, country_code } = activeLocationDetails;
-        if ((!country || country === 'Unknown' || country === 'Global Access') && country_code) {
+        if ((!country || country === 'Unknown' || country === 'Unknown Region' || country === 'Global Access') && country_code) {
             try {
                 return new Intl.DisplayNames(['en'], { type: 'region' }).of(country_code);
             } catch {

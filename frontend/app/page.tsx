@@ -74,7 +74,7 @@ export default function Home() {
       setIsPlaying(false);
       setManualSelection({
         city: location.city || 'Selected Location',
-        country: location.country || 'Unknown Region',
+        country: location.country, // Allow null to trigger Intl.DisplayNames fallback
         country_code: location.country_code || 'TZ',
         lat: location.lat,
         lng: location.lng,
@@ -110,6 +110,22 @@ export default function Home() {
   ];
 
   const currentActive = renderActiveItem();
+
+  // Helper to fallback country name
+  const getDisplayCountry = (item: any) => {
+    if (!item) return '';
+    const { country, country_code } = item;
+    if ((!country || country === 'Unknown' || country === 'Unknown Region' || country === 'Global Access') && country_code) {
+      try {
+        return new Intl.DisplayNames(['en'], { type: 'region' }).of(country_code);
+      } catch {
+        return country_code;
+      }
+    }
+    return country;
+  };
+
+  const displayCountry = getDisplayCountry(currentActive);
 
   return (
     <div className="min-h-screen bg-[#F7F8F9] font-sans text-slate-900">
@@ -195,7 +211,7 @@ export default function Home() {
                             alt=""
                           />
                         )}
-                        {currentActive.city}, {currentActive.country}
+                        {currentActive.city}, {displayCountry}
                       </div>
                     )}
                   </div>
