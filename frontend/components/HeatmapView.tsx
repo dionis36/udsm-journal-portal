@@ -80,6 +80,19 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
     const [isDeviceReady, setIsDeviceReady] = useState(false);
     const hideBarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    const displayCountryName = useMemo(() => {
+        if (!activeLocationDetails) return '';
+        const { country, country_code } = activeLocationDetails;
+        if ((!country || country === 'Unknown' || country === 'Global Access') && country_code) {
+            try {
+                return new Intl.DisplayNames(['en'], { type: 'region' }).of(country_code);
+            } catch {
+                return country_code;
+            }
+        }
+        return country;
+    }, [activeLocationDetails]);
+
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -374,24 +387,22 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
                             {activeLocationDetails.country_code && (
                                 <img
                                     src={`https://flagcdn.com/w40/${activeLocationDetails.country_code.toLowerCase()}.png`}
-                                    alt={activeLocationDetails.country}
+                                    alt={displayCountryName}
                                     className="w-8 h-auto rounded shadow-sm"
                                 />
                             )}
                             <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <h3 className={`text-base font-black tracking-tight font-montserrat ${mapTheme === 'dark' ? 'text-white' : 'text-slate-900'
-                                        }`}>
-                                        {activeLocationDetails.city}, {activeLocationDetails.country}
-                                    </h3>
-                                </div>
-                                {activeLocationDetails.article && (
-                                    <p className={`text-sm font-medium italic font-noto-serif line-clamp-1 ${mapTheme === 'dark' ? 'text-white/70' : 'text-slate-600'
-                                        }`}>
-                                        "{activeLocationDetails.article}"
-                                    </p>
-                                )}
+                                <h3 className={`text-base font-black tracking-tight font-montserrat ${mapTheme === 'dark' ? 'text-white' : 'text-slate-900'
+                                    }`}>
+                                    {activeLocationDetails.city}, {displayCountryName}
+                                </h3>
                             </div>
+                            {activeLocationDetails.article && (
+                                <p className={`text-sm font-medium italic font-noto-serif line-clamp-1 ${mapTheme === 'dark' ? 'text-white/70' : 'text-slate-600'
+                                    }`}>
+                                    "{activeLocationDetails.article}"
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>

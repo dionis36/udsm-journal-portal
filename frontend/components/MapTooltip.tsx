@@ -16,6 +16,17 @@ export function MapTooltip({ info, mapTheme, viewMode }: MapTooltipProps) {
     const { properties } = info.object;
     const { city, country, country_code, region_name, weight, article_title } = properties;
 
+    // Fallback: If country name is missing/Unknown but we have a code, derive it
+    let displayCountry = country;
+    if ((!displayCountry || displayCountry === 'Unknown' || displayCountry === 'Global Access') && country_code) {
+        try {
+            displayCountry = new Intl.DisplayNames(['en'], { type: 'region' }).of(country_code);
+        } catch (e) {
+            // Fallback to code if resolution fails
+            displayCountry = country_code;
+        }
+    }
+
     const isDark = mapTheme === 'dark';
 
     return (
@@ -40,7 +51,7 @@ export function MapTooltip({ info, mapTheme, viewMode }: MapTooltipProps) {
                     {country_code && (
                         <img
                             src={`https://flagcdn.com/w40/${country_code.toLowerCase()}.png`}
-                            alt={country}
+                            alt={displayCountry}
                             className="w-7 h-auto rounded shadow-sm mt-0.5"
                         />
                     )}
@@ -49,7 +60,7 @@ export function MapTooltip({ info, mapTheme, viewMode }: MapTooltipProps) {
                             {city || 'Regional Cluster'}{region_name ? `, ${region_name}` : ''}
                         </h3>
                         <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-white/40' : 'text-slate-400'}`}>
-                            {country || 'Zoom for Details'}
+                            {displayCountry || 'Zoom for Details'}
                         </span>
                     </div>
                 </div>
