@@ -284,13 +284,34 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
             </DeckGL>
 
             {/* HOVER TOOLTIP */}
-            {hoverInfo && !localClickedInfo && (
-                <MapTooltip
-                    info={hoverInfo}
-                    mapTheme={mapTheme}
-                    viewMode={viewMode}
-                />
-            )}
+            {(() => {
+                // Smart Tooltip Blocking: Only hide tooltip if hovering the EXACT same point that's selected
+                if (!hoverInfo) return null;
+
+                if (localClickedInfo) {
+                    const hoverCoords = hoverInfo.object?.geometry?.coordinates;
+                    const selectedCoords = localClickedInfo.geometry?.coordinates;
+
+                    // If both have coordinates, compare them
+                    if (hoverCoords && selectedCoords) {
+                        const isSamePoint =
+                            Math.abs(hoverCoords[0] - selectedCoords[0]) < 0.0001 &&
+                            Math.abs(hoverCoords[1] - selectedCoords[1]) < 0.0001;
+
+                        // Don't show tooltip on the selected point (avoid redundancy)
+                        if (isSamePoint) return null;
+                    }
+                }
+
+                // Show tooltip for all other points
+                return (
+                    <MapTooltip
+                        info={hoverInfo}
+                        mapTheme={mapTheme}
+                        viewMode={viewMode}
+                    />
+                );
+            })()}
 
             {/* MINIMAL CONTROLS OVERLAY - Positioned at top-right for cleanliness */}
             <div className="absolute top-4 right-4 z-50 flex gap-2 pointer-events-auto">

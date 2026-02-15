@@ -35,6 +35,7 @@ export default function Home() {
   // Derived active item (either from feed or manual click)
   const activeItem = manualSelection || (discoveries && discoveries.length > 0 ? discoveries[activeIndex % discoveries.length] : null);
 
+  // Auto-play timer for feed rotation
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isPlaying && !manualSelection && discoveries && discoveries.length > 0) {
@@ -44,6 +45,17 @@ export default function Home() {
     }
     return () => clearInterval(timer);
   }, [isPlaying, manualSelection, discoveries?.length]);
+
+  // Auto-resume timer: Reset to live feed after 30 seconds of manual selection
+  useEffect(() => {
+    if (manualSelection) {
+      const timeout = setTimeout(() => {
+        setManualSelection(null);
+        setIsPlaying(true);
+      }, 30000); // 30 seconds
+      return () => clearTimeout(timeout);
+    }
+  }, [manualSelection]);
 
   useEffect(() => {
     fetch('http://localhost:4000/api/metrics/impact-summary')
