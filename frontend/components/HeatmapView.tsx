@@ -11,6 +11,7 @@ import { Maximize2, Minimize2, Activity, Globe, Zap, MousePointer2, MapPin, X, S
 import { usePulse } from '../lib/api';
 import { MapTooltip } from './MapTooltip';
 import maplibregl from 'maplibre-gl';
+import Link from 'next/link';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface HeatmapData {
@@ -432,10 +433,12 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
                                 </h3>
                             </div>
                             {activeLocationDetails.article && (
-                                <p className={`text-sm font-medium italic font-noto-serif line-clamp-1 ${mapTheme === 'dark' ? 'text-white/70' : 'text-slate-600'
-                                    }`}>
-                                    "{activeLocationDetails.article}"
-                                </p>
+                                <Link href={`/articles/${activeLocationDetails.item_id || activeLocationDetails.id}`}>
+                                    <p className={`text-sm font-medium italic font-noto-serif line-clamp-1 hover:text-udsm-gold transition-colors underline decoration-dotted underline-offset-4 cursor-pointer ${mapTheme === 'dark' ? 'text-white/70' : 'text-slate-600'
+                                        }`}>
+                                        "{activeLocationDetails.article}"
+                                    </p>
+                                </Link>
                             )}
                         </div>
                     </div>

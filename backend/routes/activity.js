@@ -120,6 +120,7 @@ module.exports = async function (fastify, opts) {
                 query = `
                     SELECT 
                         rg.event_id as id,
+                        rg.item_id,
                         COALESCE(rg.city_name, 'Unknown City') as city,
                         COALESCE(rg.country_name, 'Global Access') as country,
                         rg.country_code,
@@ -137,6 +138,7 @@ module.exports = async function (fastify, opts) {
                 query = `
                     SELECT 
                         rg.event_id as id,
+                        rg.item_id,
                         COALESCE(rg.city_name, 'Unknown City') as city,
                         COALESCE(rg.country_name, 'Global Access') as country,
                         rg.country_code,

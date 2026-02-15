@@ -2,18 +2,22 @@
 
 import React from 'react';
 import { FileDown } from 'lucide-react';
+import Link from 'next/link';
 
 interface ArticleSummaryProps {
+    item_id?: number | string;
     title: string;
     authors: string[];
 }
 
-export function ArticleSummary({ title, authors }: ArticleSummaryProps) {
+export function ArticleSummary({ item_id, title, authors }: ArticleSummaryProps) {
     return (
         <div className="group py-6 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors px-4 -mx-4 rounded-xl">
-            <h3 className="text-sm font-bold text-[#16669E] leading-snug tracking-tight font-montserrat hover:underline cursor-pointer mb-2">
-                {title}
-            </h3>
+            <Link href={`/articles/${item_id}`}>
+                <h3 className="text-sm font-bold text-[#16669E] leading-snug tracking-tight font-montserrat hover:underline cursor-pointer mb-2">
+                    {title}
+                </h3>
+            </Link>
 
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <p className="text-[13px] text-slate-500 font-medium font-noto-serif italic">
