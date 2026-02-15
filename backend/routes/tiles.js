@@ -42,16 +42,19 @@ module.exports = async function (fastify, opts) {
                 query = `
                         WITH tile_data AS (
                             SELECT 
-                                location_point,
-                                weight,
-                                event_type,
-                                journal_id::text,
-                                COALESCE(city_name, 'Regional Center') as city,
-                                COALESCE(country_name, 'Unknown') as country,
-                                country_code
-                            FROM readership_geodata
-                            WHERE ST_Transform(location_point, 3857) && ST_TileEnvelope($1, $2, $3)
-                            AND location_point IS NOT NULL
+                                rg.location_point,
+                                rg.weight,
+                                rg.event_type,
+                                rg.journal_id::text,
+                                COALESCE(rg.city_name, 'Regional Center') as city,
+                                COALESCE(rg.country_name, 'Unknown') as country,
+                                rg.region_name,
+                                rg.country_code,
+                                LEFT(pa.title, 100) as article_title
+                            FROM readership_geodata rg
+                            LEFT JOIN platform_articles pa ON rg.item_id = pa.item_id
+                            WHERE ST_Transform(rg.location_point, 3857) && ST_TileEnvelope($1, $2, $3)
+                            AND rg.location_point IS NOT NULL
                         ),
                         mvt_geom AS (
                             SELECT 
@@ -62,7 +65,9 @@ module.exports = async function (fastify, opts) {
                                 journal_id,
                                 city,
                                 country,
-                                country_code
+                                region_name,
+                                country_code,
+                                article_title
                             FROM tile_data
                         )
                         SELECT ST_AsMVT(mvt_geom.*, 'readership', 4096, 'geom', 'id') as mvt FROM mvt_geom;

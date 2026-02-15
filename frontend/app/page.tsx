@@ -62,7 +62,7 @@ export default function Home() {
         lat: location.lat,
         lng: location.lng,
         time: "Interacting...",
-        article: "User Exploring Location"
+        article: location.article_title || "User Exploring Location" // Use real title if available
       });
     } else {
       setManualSelection(null);

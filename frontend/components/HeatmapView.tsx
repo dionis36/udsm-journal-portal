@@ -9,6 +9,7 @@ import { MVTLayer } from '@deck.gl/geo-layers';
 import { FlyToInterpolator } from '@deck.gl/core';
 import { Maximize2, Minimize2, Activity, Globe, Zap, MousePointer2, MapPin, X, Sun, Moon } from 'lucide-react';
 import { usePulse } from '../lib/api';
+import { MapTooltip } from './MapTooltip';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -283,34 +284,13 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
             </DeckGL>
 
             {/* HOVER TOOLTIP */}
-            {
-                hoverInfo && !localClickedInfo && (
-                    <div
-                        className="absolute z-50 pointer-events-none bg-black/80 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl flex flex-col gap-1 min-w-[140px]"
-                        style={{ left: hoverInfo.x + 15, top: hoverInfo.y - 40 }}
-                    >
-                        <div className="flex items-center gap-2">
-                            <MapPin size={12} className="text-udsm-gold" />
-                            <span className={`text-[10px] font-black uppercase tracking-widest ${mapTheme === 'dark' ? 'text-white/40' : 'text-slate-400'} font-montserrat`}>Location Details</span>
-                        </div>
-                        <div className={`text-sm font-bold tracking-tight flex items-center gap-2 ${mapTheme === 'dark' ? 'text-white' : 'text-slate-900'} font-noto-serif`}>
-                            {hoverInfo.object.properties.country_code && (
-                                <img
-                                    src={`https://flagcdn.com/w20/${hoverInfo.object.properties.country_code.toLowerCase()}.png`}
-                                    alt=""
-                                    className="w-4 h-3 rounded-sm"
-                                />
-                            )}
-                            {hoverInfo.object.properties.city || 'Regional Center'}, {hoverInfo.object.properties.country}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[9px] font-black text-udsm-gold bg-udsm-gold/10 px-1.5 py-0.5 rounded border border-udsm-gold/20 uppercase">
-                                {hoverInfo.object.properties.weight} {viewMode === 'readership' ? 'Reads' : 'Visits'}
-                            </span>
-                        </div>
-                    </div>
-                )
-            }
+            {hoverInfo && !localClickedInfo && (
+                <MapTooltip
+                    info={hoverInfo}
+                    mapTheme={mapTheme}
+                    viewMode={viewMode}
+                />
+            )}
 
             {/* MINIMAL CONTROLS OVERLAY - Positioned at top-right for cleanliness */}
             <div className="absolute top-4 right-4 z-50 flex gap-2 pointer-events-auto">

@@ -1,0 +1,55 @@
+--- Platform Articles ---
+[
+  {
+    "item_id": "3",
+    "journal_id": "1",
+    "title": "Structural Adjustment Programmes and the Development of Low-Income Landlordism in Tanzania: The Case of Mbeya Municipality and Dar es Salaam City",
+    "authors": [
+      "Juma Kiduanga"
+    ],
+    "publication_date": "2007-12-31T00:00:00.000Z",
+    "doi": null,
+    "abstract": "<div>\\r\\n<p>The contribution made by SAPs to landlords was to create rented house properties, which were beneficial both to the landlords and tenants. In Dar es Salaam city and Urban Mbeya there has been an increase in housing stock as a result of rented houses built by landlords in the context of the programmes. The rented house properties contributed were used by the owners as productive assets and rented out to generate incomes, which were used to meet various socio-economic needs of the landlords. The tenants benefited from the rented houses contributed by having places to live and carry out their various socio-economic activities.</p>\\r\\n<p>Despite all the above benefits the study found that while in Dar es Salaam 81% of 99 rented houses surveyed were incomplete in various physical structures and lacked electricity that of Urban Mbeya constituted 74% of 100 rented houses, an indication of poor conditions of many rented houses available in the neighbourhoods. The houses in Dar es Salaam in addition of being characterised by those two aspects water was also missing in many of them. Three factors accounted for the situation of poor condition of rented houses in the surveyed areas of Dar es Salaam and Urban Mbeya. First, the inability of government agencies responsible for issuing security of tenure to landlords on rented properties. Secondly, the problem of inadequate finance existed to the side of the landlords, a situation attributed to an erosion of their incomes. And thirdly, bureaucracy exercised by some of TANESCO officials.</p>\\r\\n<p>SAPs had never acted as a force that made incomes of the landlords to be eroded. Instead the programmes created various opportunities for the landlords and tenants to tap them in order to generate incomes that could be used as financial resources for improving and building housing respectively. The opportunities facilitated by SAPs were skills development, micro finance enterprises/organisations development and development of p",
+    "metadata": {},
+    "pages": null
+  },
+  {
+    "item_id": "9",
+    "journal_id": "1",
+    "title": "Reflections on the Macro-Micro Linkages in the Analysis of Development Policy: A Developing Country Perspective",
+    "authors": [
+      "Longinus Rutasitara",
+      "Longinus Rutasitara",
+      "Onesmo Selejio",
+      "Wilhelm Ngasamiaku"
+    ],
+    "publication_date": "2008-12-31T00:00:00.000Z",
+    "doi": null,
+    "abstract": "<p>Better understanding of the macro-micro linkages in the analyses of economic development policies, programmes and strategies is important for those poor countries that have recorded slow progress in poverty reduction after years of development initiatives and aid inflows. This paper reflects on how analyses of the policy linkages can be improved to look beyond just the economic setting of the macro-meso-micro policy channels covering policy makers and economic agents (households, firms and institutions), and include non-economic explanations of development. It is noted that quantitative (macroeconomic/microeconomic) models of development do not often capture all facilitating or inhibiting factors; hence the need to supplement the assessment by qualitative methods of analyses. The study emphasises the need for analysts to sharpen capacity in the application of “double-Q methodologies” and multi-disciplinary approaches to research and analysis of development policies and programmes.</p>",
+    "metadata": {},
+    "pages": null
+  },
+  {
+    "item_id": "21",
+    "journal_id": "1",
+    "title": "Control of Soil Erosion in Mzinga River Catchment In the Uluguru Mountains, Tanzania: Approaches and Practices",
+    "authors": [
+      "M. K. Mulengera",
+      "L. L. L. Lulandala",
+      "S. M. Maliondo",
+      "A. P. Maerere",
+      "R. P. C. Temu",
+      "C. P. Msuya Bengesi",
+      "Z. S. K. Mvena"
+    ],
+    "publication_date": "2009-06-30T00:00:00.000Z",
+    "doi": null,
+    "abstract": "<p>Soil erosion is a serious problem in Tanzania that leads to land degradation and rapid siltation of water reservoirs and water supply structures. This paper presents findings from a project initiated in 2003/2004 to rehabilitate the Mzinga River Catchment. The objective of the project was to rehabilitate the highly degraded catchment in order to improve peoples’ economic well being by imparting knowledge of raising tree seedlings in nurseries, growing forest and fruit trees, practicing agroforestry, and by establishing mechanical conservation works. The catchment conservation approach adopted was land user free choice in collaboration with community conservation committee and other key stake holders. Soil erosion measurements were done on fields, fallow lands, and semi-natural vegetation areas to monitor land use practices that contribute greatly to catchment degradation. Sediment yield modelling was done to determine rates of sediment yields from the catchment. The study results show very high soil erosion rates (up to more than 33 tons/ha) on agricultural lands, and sediment yields from the Mzinga river catchment of about 17 tons/ha per year. The study showed that conservation activities need extension to overcome the bad historical experiences of the communities in the catchment area, and to have more farmers adopting appropriate soil conservation measures after demonstrated increased productivity and economic benefits that will be achieved through good land husbandry practices and planted forest and fruit trees.</p>",
+    "metadata": {},
+    "pages": null
+  }
+]
+
+--- Research Items ---
+[]
+
