@@ -212,7 +212,16 @@ export default function Home() {
                 viewMode={viewMode}
                 onModeChange={setViewMode}
                 activeLocation={activeItem ? { lat: activeItem.lat, lng: activeItem.lng } : null}
+                activeLocationDetails={activeItem}
                 onLocationSelect={handleMapInteraction}
+                feedControls={{
+                  isPlaying,
+                  onPlayPause: () => setIsPlaying(!isPlaying),
+                  onNext: handleNext,
+                  onPrev: handlePrev,
+                  onReset: () => setManualSelection(null),
+                  hasManualSelection: !!manualSelection
+                }}
               />
             </div>
 

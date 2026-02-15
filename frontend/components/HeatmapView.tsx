@@ -7,7 +7,7 @@ import { HeatmapLayer } from '@deck.gl/aggregation-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { MVTLayer } from '@deck.gl/geo-layers';
 import { FlyToInterpolator } from '@deck.gl/core';
-import { Maximize2, Minimize2, Activity, Globe, Zap, MousePointer2, MapPin, X, Sun, Moon } from 'lucide-react';
+import { Maximize2, Minimize2, Activity, Globe, Zap, MousePointer2, MapPin, X, Sun, Moon, Play, Pause, SkipForward, SkipBack, RefreshCw } from 'lucide-react';
 import { usePulse } from '../lib/api';
 import { MapTooltip } from './MapTooltip';
 import maplibregl from 'maplibre-gl';
@@ -33,7 +33,16 @@ interface HeatmapViewProps {
     viewMode: 'readership' | 'traffic';
     onModeChange: (mode: 'readership' | 'traffic') => void;
     activeLocation?: { lat: number; lng: number } | null;
+    activeLocationDetails?: any;
     onLocationSelect?: (location: any) => void;
+    feedControls?: {
+        isPlaying: boolean;
+        onPlayPause: () => void;
+        onNext: () => void;
+        onPrev: () => void;
+        onReset: () => void;
+        hasManualSelection: boolean;
+    };
 }
 
 interface Ripple {
@@ -54,12 +63,13 @@ const INITIAL_VIEW_STATE = {
 const DARK_MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 const LIGHT_MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 
-export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLocation, onLocationSelect }: HeatmapViewProps) {
+export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLocation, activeLocationDetails, onLocationSelect, feedControls }: HeatmapViewProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [rippleState, setRipples] = useState<Ripple[]>([]);
     const [mapTheme, setMapTheme] = useState<'light' | 'dark'>('light');
+    const [showFullscreenBar, setShowFullscreenBar] = useState(false);
 
     // PERFORMANCE FIX: Use useRef for viewState to avoid React re-renders on every pan/zoom
     const viewStateRef = useRef<any>(INITIAL_VIEW_STATE);
@@ -68,6 +78,7 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
     const [hoverInfo, setHoverInfo] = useState<any>(null);
     const [localClickedInfo, setLocalClickedInfo] = useState<any>(null);
     const [isDeviceReady, setIsDeviceReady] = useState(false);
+    const hideBarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -249,6 +260,34 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
         return () => document.removeEventListener('fullscreenchange', handleFSChange);
     }, []);
 
+    // Fullscreen bar auto-hide logic
+    useEffect(() => {
+        if (isFullscreen) {
+            setShowFullscreenBar(true);
+            // Auto-hide after 3 seconds
+            if (hideBarTimeoutRef.current) clearTimeout(hideBarTimeoutRef.current);
+            hideBarTimeoutRef.current = setTimeout(() => {
+                setShowFullscreenBar(false);
+            }, 3000);
+        } else {
+            setShowFullscreenBar(false);
+        }
+        return () => {
+            if (hideBarTimeoutRef.current) clearTimeout(hideBarTimeoutRef.current);
+        };
+    }, [isFullscreen, activeLocationDetails]);
+
+    // Show bar on mouse movement in fullscreen
+    const handleMouseMove = useCallback(() => {
+        if (isFullscreen) {
+            setShowFullscreenBar(true);
+            if (hideBarTimeoutRef.current) clearTimeout(hideBarTimeoutRef.current);
+            hideBarTimeoutRef.current = setTimeout(() => {
+                setShowFullscreenBar(false);
+            }, 3000);
+        }
+    }, [isFullscreen]);
+
     if (!mounted) return (
         <div className="w-full h-full bg-slate-950 rounded-2xl flex items-center justify-center border border-white/5">
             <div className="w-12 h-12 border-4 border-udsm-gold border-t-transparent rounded-full animate-spin" />
@@ -267,6 +306,7 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
                 layers={isDeviceReady ? layers : []}
                 onDeviceInitialized={onDeviceInitialized}
                 getCursor={({ isHovering }) => (isHovering ? 'pointer' : 'grab')}
+                onHover={handleMouseMove}
                 parameters={{
                     blendColorOperation: 'add',
                     blendColorSrcFactor: 'src-alpha',
@@ -313,8 +353,87 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
                 );
             })()}
 
+            {/* FULLSCREEN TOP BAR (Auto-hide) */}
+            {isFullscreen && activeLocationDetails && (
+                <div
+                    className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${showFullscreenBar ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+                        }`}
+                    onMouseEnter={() => {
+                        setShowFullscreenBar(true);
+                        if (hideBarTimeoutRef.current) clearTimeout(hideBarTimeoutRef.current);
+                    }}
+                    onMouseLeave={() => {
+                        hideBarTimeoutRef.current = setTimeout(() => setShowFullscreenBar(false), 3000);
+                    }}
+                >
+                    <div className={`backdrop-blur-xl rounded-xl shadow-2xl border px-6 py-4 max-w-[600px] ${mapTheme === 'dark'
+                        ? 'bg-slate-900/80 border-white/10 text-white'
+                        : 'bg-white/90 border-slate-200 text-slate-900'
+                        }`}>
+                        <div className="flex items-center gap-4">
+                            {activeLocationDetails.country_code && (
+                                <img
+                                    src={`https://flagcdn.com/w40/${activeLocationDetails.country_code.toLowerCase()}.png`}
+                                    alt={activeLocationDetails.country}
+                                    className="w-8 h-auto rounded shadow-sm"
+                                />
+                            )}
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <h3 className={`text-base font-black tracking-tight font-montserrat ${mapTheme === 'dark' ? 'text-white' : 'text-slate-900'
+                                        }`}>
+                                        {activeLocationDetails.city}, {activeLocationDetails.country}
+                                    </h3>
+                                </div>
+                                {activeLocationDetails.article && (
+                                    <p className={`text-sm font-medium italic font-noto-serif line-clamp-1 ${mapTheme === 'dark' ? 'text-white/70' : 'text-slate-600'
+                                        }`}>
+                                        "{activeLocationDetails.article}"
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* MINIMAL CONTROLS OVERLAY - Positioned at top-right for cleanliness */}
             <div className="absolute top-4 right-4 z-50 flex gap-2 pointer-events-auto">
+                {/* Feed Controls (Fullscreen Only) */}
+                {isFullscreen && feedControls && (
+                    <>
+                        <button
+                            onClick={feedControls.onPrev}
+                            className={`p-2 backdrop-blur-md border rounded-lg transition-all shadow-sm ${mapTheme === 'dark' ? 'bg-black/40 border-white/10 text-white/60 hover:text-white' : 'bg-white/80 border-slate-200 text-slate-500 hover:text-slate-900'}`}
+                            title="Previous"
+                        >
+                            <SkipBack size={14} />
+                        </button>
+                        <button
+                            onClick={feedControls.onPlayPause}
+                            className={`p-2 backdrop-blur-md border rounded-lg transition-all shadow-sm ${mapTheme === 'dark' ? 'bg-black/40 border-white/10 text-white/60 hover:text-white' : 'bg-white/80 border-slate-200 text-slate-500 hover:text-slate-900'}`}
+                            title={feedControls.isPlaying ? 'Pause' : 'Play'}
+                        >
+                            {feedControls.isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                        </button>
+                        <button
+                            onClick={feedControls.onNext}
+                            className={`p-2 backdrop-blur-md border rounded-lg transition-all shadow-sm ${mapTheme === 'dark' ? 'bg-black/40 border-white/10 text-white/60 hover:text-white' : 'bg-white/80 border-slate-200 text-slate-500 hover:text-slate-900'}`}
+                            title="Next"
+                        >
+                            <SkipForward size={14} />
+                        </button>
+                        {feedControls.hasManualSelection && (
+                            <button
+                                onClick={feedControls.onReset}
+                                className={`p-2 backdrop-blur-md border rounded-lg transition-all shadow-sm ${mapTheme === 'dark' ? 'bg-black/40 border-white/10 text-red-400 hover:text-red-300' : 'bg-white/80 border-slate-200 text-red-400 hover:text-red-600'}`}
+                                title="Reset to Live Feed"
+                            >
+                                <RefreshCw size={14} />
+                            </button>
+                        )}
+                    </>
+                )}
                 <button
                     onClick={() => setMapTheme(prev => prev === 'dark' ? 'light' : 'dark')}
                     className={`p-2 backdrop-blur-md border rounded-lg transition-all shadow-sm ${mapTheme === 'dark' ? 'bg-black/40 border-white/10 text-white/60 hover:text-white' : 'bg-white/80 border-slate-200 text-slate-500 hover:text-slate-900'}`}
