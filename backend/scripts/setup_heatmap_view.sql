@@ -7,7 +7,11 @@ SELECT
     ST_SnapToGrid(location_point, 0.1) as geom,
     journal_id,
     SUM(weight) as weight,
-    event_type
+    event_type,
+    -- Add metadata for UI display (picking the most common or first encountered)
+    mode() WITHIN GROUP (ORDER BY city_name) as city_name,
+    mode() WITHIN GROUP (ORDER BY country_name) as country_name,
+    mode() WITHIN GROUP (ORDER BY country_code) as country_code
 FROM readership_geodata
 WHERE location_point IS NOT NULL
 GROUP BY ST_SnapToGrid(location_point, 0.1), journal_id, event_type;

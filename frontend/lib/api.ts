@@ -138,8 +138,10 @@ export function usePulse(onEvent: (event: any) => void) {
 }
 
 export function useActivityFeed() {
-    const { data, error, isLoading, mutate } = useSWR(`${API_BASE}/activity/feed`, fetcher, {
-        refreshInterval: 10000 // Refresh every 10 seconds to keep list in sync
+    // Use random mode to prevent looping on same 10 items
+    const { data, error, isLoading, mutate } = useSWR(`${API_BASE}/activity/feed?mode=random`, fetcher, {
+        refreshInterval: 15000, // Refresh every 15 seconds (slower rotation)
+        revalidateOnFocus: false, // Don't revalidate on window focus to avoid jarring jumps
     });
     return {
         events: data || [],

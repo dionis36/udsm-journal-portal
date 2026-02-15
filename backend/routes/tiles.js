@@ -23,7 +23,10 @@ module.exports = async function (fastify, opts) {
                                 geom,
                                 weight,
                                 event_type,
-                                journal_id::text
+                                journal_id::text,
+                                city_name as city,
+                                country_name as country,
+                                country_code
                             FROM readership_heatmap_cache
                             WHERE ST_Transform(geom, 3857) && ST_TileEnvelope($1, $2, $3)
                         ),
@@ -32,7 +35,10 @@ module.exports = async function (fastify, opts) {
                                 ST_AsMVTGeom(st_transform(geom, 3857), ST_TileEnvelope($1, $2, $3), 4096, 0, false) as geom,
                                 weight,
                                 event_type,
-                                journal_id
+                                journal_id,
+                                city,
+                                country,
+                                country_code
                             FROM tile_data
                         )
                         SELECT ST_AsMVT(mvt_geom.*, 'readership', 4096, 'geom') as mvt FROM mvt_geom;
