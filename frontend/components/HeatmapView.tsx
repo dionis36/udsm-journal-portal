@@ -7,7 +7,7 @@ import { HeatmapLayer } from '@deck.gl/aggregation-layers';
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { MVTLayer } from '@deck.gl/geo-layers';
 import { FlyToInterpolator } from '@deck.gl/core';
-import { Maximize2, Minimize2, Activity, Globe, Zap, MousePointer2, MapPin, X, Sun, Moon, Play, Pause, SkipForward, SkipBack, RefreshCw } from 'lucide-react';
+import { Maximize2, Minimize2, Activity, Globe, Zap, MousePointer2, MapPin, X, Sun, Moon, Play, Pause, SkipForward, SkipBack, RefreshCw, ZoomIn, ZoomOut } from 'lucide-react';
 import { usePulse } from '../lib/api';
 import { MapTooltip } from './MapTooltip';
 import maplibregl from 'maplibre-gl';
@@ -124,11 +124,36 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
     }, [onLocationSelect]);
 
     const onViewStateChange = useCallback(({ viewState }: any) => {
-        viewStateRef.current = viewState;
-        // PERFORMANCE FIX: Prevent "Cannot update during render" warning by scheduling update
+        // Enforce zoom bounds for better UX
+        const boundedZoom = Math.max(0.5, Math.min(20, viewState.zoom));
+        viewStateRef.current = { ...viewState, zoom: boundedZoom };
+
+        // PERFORMANCE: Use requestAnimationFrame to avoid sync state update during render
         requestAnimationFrame(() => {
             forceUpdate({});
         });
+    }, []);
+
+    const handleZoomIn = useCallback(() => {
+        const nextZoom = Math.min(20, viewStateRef.current.zoom + 1);
+        viewStateRef.current = {
+            ...viewStateRef.current,
+            zoom: nextZoom,
+            transitionDuration: 500,
+            transitionInterpolator: new FlyToInterpolator()
+        };
+        forceUpdate({});
+    }, []);
+
+    const handleZoomOut = useCallback(() => {
+        const nextZoom = Math.max(0.5, viewStateRef.current.zoom - 1);
+        viewStateRef.current = {
+            ...viewStateRef.current,
+            zoom: nextZoom,
+            transitionDuration: 500,
+            transitionInterpolator: new FlyToInterpolator()
+        };
+        forceUpdate({});
     }, []);
 
     const onDeviceInitialized = useCallback((device: any) => {
@@ -324,7 +349,7 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
             className={`relative w-full h-full ${mapTheme === 'dark' ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'} rounded-2xl overflow-hidden group shadow-2xl border ${mapTheme === 'dark' ? 'border-white/5' : 'border-slate-200'} transition-all duration-700 font-sans`}
         >
             <DeckGL
-                initialViewState={viewStateRef.current}
+                viewState={viewStateRef.current}
                 onViewStateChange={onViewStateChange}
                 controller={true}
                 layers={isDeviceReady ? layers : []}
@@ -342,9 +367,7 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
                     mapStyle={mapTheme === 'dark' ? DARK_MAP_STYLE : LIGHT_MAP_STYLE}
                     mapLib={maplibregl}
                     reuseMaps
-                >
-                    <NavigationControl position="bottom-right" />
-                </Map>
+                />
             </DeckGL>
 
             {/* HOVER TOOLTIP */}
@@ -465,6 +488,20 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLoc
                     title={cameraFocusMode ? 'Disable Camera Focus' : 'Enable Camera Focus'}
                 >
                     <Zap size={14} className={cameraFocusMode ? 'fill-current' : ''} />
+                </button>
+                <button
+                    onClick={handleZoomIn}
+                    className={`p-2 backdrop-blur-md border rounded-lg transition-all shadow-sm ${mapTheme === 'dark' ? 'bg-black/40 border-white/10 text-white/60 hover:text-white' : 'bg-white/80 border-slate-200 text-slate-500 hover:text-slate-900'}`}
+                    title="Zoom In"
+                >
+                    <ZoomIn size={14} />
+                </button>
+                <button
+                    onClick={handleZoomOut}
+                    className={`p-2 backdrop-blur-md border rounded-lg transition-all shadow-sm ${mapTheme === 'dark' ? 'bg-black/40 border-white/10 text-white/60 hover:text-white' : 'bg-white/80 border-slate-200 text-slate-500 hover:text-slate-900'}`}
+                    title="Zoom Out"
+                >
+                    <ZoomOut size={14} />
                 </button>
                 <button
                     onClick={() => setMapTheme(prev => prev === 'dark' ? 'light' : 'dark')}
