@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { OJSHeader } from "@/components/OJSHeader";
 import { OJSSidebar } from "@/components/OJSSidebar";
 import { ArticleSummary } from "@/components/ArticleSummary";
-import { useJournals, useHeatmap } from "@/lib/api";
+import { useJournals, useHeatmap, useActivityFeed } from "@/lib/api";
 
 const HeatmapView = dynamic(() => import("@/components/HeatmapView").then(mod => mod.HeatmapView), {
   ssr: false,
@@ -15,33 +15,74 @@ const HeatmapView = dynamic(() => import("@/components/HeatmapView").then(mod =>
     </div>
   )
 });
-import { MapPin, Activity, ChevronRight } from "lucide-react";
+import { MapPin, Activity, ChevronRight, Play, Pause, SkipForward, SkipBack, RefreshCw } from "lucide-react";
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<'readership' | 'traffic'>('readership');
-  const { data: heatmapData, isLoading: heatmapLoading } = useHeatmap(undefined, viewMode);
+  // PERFORMANCE FIX: Disabled heatmap fetch as per user request to remove density blobs.
+  const heatmapData = null;
+  const heatmapLoading = false;
+  // const { data: heatmapData, isLoading: heatmapLoading } = useHeatmap(undefined, viewMode);
   const [summary, setSummary] = useState<any>(null);
 
-  const [activeDiscovery, setActiveDiscovery] = useState(0);
-  const discoveries = [
-    { city: "Dar es Salaam", country: "Tanzania", country_code: "TZ", time: "Just now", article: "Fertility Transitions in Urban Tanzania" },
-    { city: "London", country: "UK", country_code: "GB", time: "2m ago", article: "Climate Migration Patterns in East Africa" },
-    { city: "Nairobi", country: "Kenya", country_code: "KE", time: "5m ago", article: "Maternal Health Policy Analysis" },
-    { city: "New York", country: "USA", country_code: "US", time: "12m ago", article: "Spatial Distribution of Population" },
-  ];
+  // Feed State
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [manualSelection, setManualSelection] = useState<any>(null);
+
+  const { events: discoveries, mutate: mutateFeed } = useActivityFeed();
+
+  // Derived active item (either from feed or manual click)
+  const activeItem = manualSelection || (discoveries && discoveries.length > 0 ? discoveries[activeIndex % discoveries.length] : null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveDiscovery(prev => (prev + 1) % discoveries.length);
-    }, 5000);
+    let timer: NodeJS.Timeout;
+    if (isPlaying && !manualSelection && discoveries && discoveries.length > 0) {
+      timer = setInterval(() => {
+        setActiveIndex(prev => (prev + 1) % discoveries.length);
+      }, 5000);
+    }
+    return () => clearInterval(timer);
+  }, [isPlaying, manualSelection, discoveries?.length]);
 
-    fetch('http://localhost:3001/api/metrics/impact-summary')
+  useEffect(() => {
+    fetch('http://localhost:4000/api/metrics/impact-summary')
       .then(r => r.json())
       .then(data => setSummary(data))
       .catch(err => console.error('Failed to fetch summary:', err));
-
-    return () => clearInterval(timer);
   }, []);
+
+  const handleMapInteraction = (location: any) => {
+    if (location) {
+      setIsPlaying(false);
+      setManualSelection({
+        city: location.city || 'Selected Location',
+        country: location.country || 'Unknown Region',
+        country_code: location.country_code || 'TZ',
+        lat: location.lat,
+        lng: location.lng,
+        time: "Interacting...",
+        article: "User Exploring Location"
+      });
+    } else {
+      setManualSelection(null);
+      setIsPlaying(true);
+    }
+  };
+
+  const handleNext = () => {
+    setManualSelection(null);
+    setActiveIndex(prev => (prev + 1) % discoveries.length);
+    setIsPlaying(false);
+  };
+
+  const handlePrev = () => {
+    setManualSelection(null);
+    setActiveIndex(prev => (prev - 1 + discoveries.length) % discoveries.length);
+    setIsPlaying(false);
+  };
+
+  const renderActiveItem = () => activeItem || (discoveries && discoveries.length > 0 ? discoveries[0] : null);
 
   const MOCK_ARTICLES = [
     { title: "Fertility Transitions and reproductive health among adolescent girls in urban Tanzania", authors: ["John Mashaka", "Mariam Juma"] },
@@ -50,6 +91,8 @@ export default function Home() {
     { title: "Spatial distribution of primary schools and its impact on enrollment rates", authors: ["Lucas Malima"] },
     { title: "Analyzing 50 years of population growth: A longitudinal study of UDSM records", authors: ["Benson Kikwete", "Anna Mkapa"] },
   ];
+
+  const currentActive = renderActiveItem();
 
   return (
     <div className="min-h-screen bg-[#F7F8F9] font-sans text-slate-900">
@@ -85,7 +128,7 @@ export default function Home() {
 
           {/* PREMIUM IMPACT DASHBOARD */}
           <section className="mb-12 rounded-sm border border-slate-200 overflow-hidden shadow-sm bg-white">
-            {/* 1. Real-time Readership Header (High Detail) */}
+            {/* 1. Real-time Readership Header (High Detail & Controls) */}
             <div className="border-b border-slate-100 flex items-stretch">
               <div className="bg-slate-50 px-6 py-6 border-r border-slate-100 flex flex-col justify-center min-w-[200px]">
                 <span className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-1">Real-time Impact</span>
@@ -93,26 +136,59 @@ export default function Home() {
                   <span className="text-3xl font-black text-[#16669E] leading-none">{(summary?.total_hits || 0).toLocaleString()}</span>
                   <span className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Total Hits</span>
                 </div>
-                <div className="mt-4 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                  <span className="text-[9px] font-black text-green-600 uppercase tracking-widest leading-none">Active Pulse</span>
-                </div>
-              </div>
-              <div className="flex-1 p-6 flex flex-col justify-center bg-white">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-[10px] font-black text-[#16669E] uppercase tracking-widest">Active Reader From:</span>
-                  <div className="flex items-center gap-2 px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold text-slate-600">
-                    <img
-                      src={`https://flagcdn.com/w20/${discoveries[activeDiscovery].country_code.toLowerCase()}.png`}
-                      className="w-4 h-auto rounded-sm"
-                      alt=""
-                    />
-                    {discoveries[activeDiscovery].city}, {discoveries[activeDiscovery].country}
+                {isPlaying ? (
+                  <div className="mt-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                    <span className="text-[9px] font-black text-green-600 uppercase tracking-widest leading-none">Live Feed Active</span>
                   </div>
+                ) : (
+                  <div className="mt-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+                    <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest leading-none">Feed Paused</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Active Content & Controls */}
+              <div className="flex-1 p-0 flex flex-col relative group">
+                <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button onClick={handlePrev} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-[#16669E] transition-colors"><SkipBack size={14} /></button>
+                  <button onClick={() => setIsPlaying(!isPlaying)} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-[#16669E] transition-colors">
+                    {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                  </button>
+                  <button onClick={handleNext} className="p-1.5 hover:bg-slate-100 rounded text-slate-400 hover:text-[#16669E] transition-colors"><SkipForward size={14} /></button>
+                  {manualSelection && (
+                    <button onClick={() => setManualSelection(null)} className="p-1.5 hover:bg-red-50 rounded text-red-400 hover:text-red-600 transition-colors ml-2" title="Reset to Live Feed">
+                      <RefreshCw size={14} />
+                    </button>
+                  )}
                 </div>
-                <p className="text-sm font-black text-slate-900 leading-tight font-noto-serif italic">
-                  "{discoveries[activeDiscovery].article}"
-                </p>
+
+                <div className="flex-1 p-6 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-[10px] font-black text-[#16669E] uppercase tracking-widest">
+                      {manualSelection ? 'User Inspecting:' : (currentActive ? 'Active Reader From:' : 'Syncing Feed...')}
+                    </span>
+                    {currentActive && (
+                      <div className={`flex items-center gap-2 px-2 py-0.5 rounded text-[10px] font-bold transition-all ${manualSelection ? 'bg-udsm-gold text-udsm-blue shadow-sm' : 'bg-slate-100 text-slate-600'}`}>
+                        {currentActive.country_code && (
+                          <img
+                            src={`https://flagcdn.com/w20/${currentActive.country_code.toLowerCase()}.png`}
+                            className="w-4 h-auto rounded-sm"
+                            alt=""
+                          />
+                        )}
+                        {currentActive.city}, {currentActive.country}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm font-black text-slate-900 leading-tight font-noto-serif italic transition-all duration-300">
+                    "{currentActive?.article || 'Waiting for activity records...'}"
+                  </p>
+                </div>
+
+                {/* Progress Bar for Auto-Feed */}
+                {isPlaying && discoveries && discoveries.length > 0 && <div className="h-0.5 w-full bg-slate-100 overflow-hidden"><div className="h-full bg-udsm-gold animate-[progress_5s_linear_infinite]" /></div>}
               </div>
             </div>
 
@@ -123,6 +199,8 @@ export default function Home() {
                 isLoading={heatmapLoading}
                 viewMode={viewMode}
                 onModeChange={setViewMode}
+                activeLocation={activeItem ? { lat: activeItem.lat, lng: activeItem.lng } : null}
+                onLocationSelect={handleMapInteraction}
               />
             </div>
 

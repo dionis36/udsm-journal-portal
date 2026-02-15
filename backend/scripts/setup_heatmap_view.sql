@@ -6,9 +6,10 @@ CREATE MATERIALIZED VIEW readership_heatmap_cache AS
 SELECT 
     ST_SnapToGrid(location_point, 0.1) as geom,
     journal_id,
-    count(*) as weight,
+    SUM(weight) as weight,
     event_type
 FROM readership_geodata
+WHERE location_point IS NOT NULL
 GROUP BY ST_SnapToGrid(location_point, 0.1), journal_id, event_type;
 
 -- Index for performance

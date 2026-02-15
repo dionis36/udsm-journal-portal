@@ -109,4 +109,31 @@ module.exports = async function (fastify, opts) {
 
         return reply.send({ status: 'mocked', count, hits });
     });
+
+    // Recent Activity Feed: Get the last 10 events for the UI list
+    fastify.get('/activity/feed', async (request, reply) => {
+        try {
+            const query = `
+                SELECT 
+                    rg.event_id as id,
+                    COALESCE(rg.city_name, 'Unknown City') as city,
+                    COALESCE(rg.country_name, 'Global Access') as country,
+                    rg.country_code,
+                    ST_X(rg.location_point::geometry) as lng,
+                    ST_Y(rg.location_point::geometry) as lat,
+                    rg.event_type,
+                    COALESCE(pa.title, 'Research Article Access') as article,
+                    rg.timestamp
+                FROM readership_geodata rg
+                LEFT JOIN platform_articles pa ON rg.item_id = pa.item_id
+                ORDER BY rg.timestamp DESC
+                LIMIT 10
+            `;
+            const result = await fastify.db.query(query);
+            return reply.send(result.rows);
+        } catch (err) {
+            fastify.log.error('Failed to fetch activity feed:', err);
+            return reply.code(500).send({ error: 'Failed' });
+        }
+    });
 };

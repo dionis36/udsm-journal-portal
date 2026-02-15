@@ -18,7 +18,7 @@ fastify.register(require('@fastify/swagger'), {
       description: 'API for Journal Metadata, Articles, and Real-time Analytics',
       version: '1.0.0'
     },
-    host: 'localhost:3001',
+    host: 'localhost:4000',
     schemes: ['http'],
     consumes: ['application/json'],
     produces: ['application/json']
@@ -69,9 +69,10 @@ const start = async () => {
     await fastify.ready();
     fastify.swagger(); // Generate Swagger
 
-    // Listen on 3001
-    await fastify.listen({ port: 3001, host: '0.0.0.0' });
-    fastify.log.info(`Server listening on ${fastify.server.address().port}`);
+    // Listen on assigned port (fallback to 4000)
+    const port = process.env.PORT || 4000;
+    await fastify.listen({ port: parseInt(port), host: '0.0.0.0' });
+    fastify.log.info(`Server listening on ${port}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

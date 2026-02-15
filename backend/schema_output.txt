@@ -1,0 +1,36 @@
+Connected to DB via db.js
+
+--- readership_geodata ---
+event_id: uuid
+journal_id: integer
+item_id: bigint
+location_point: USER-DEFINED
+event_type: character varying
+country_code: character
+country_name: character varying
+region_name: character varying
+city_name: character varying
+session_duration: integer
+is_institutional: boolean
+timestamp: timestamp with time zone
+
+--- metrics ---
+load_id: character varying
+context_id: bigint
+submission_id: bigint
+assoc_type: bigint
+day: character varying
+month: character varying
+country_id: character varying
+region: character varying
+city: character varying
+metric_type: character varying
+metric: integer
+
+--- geoip_cities ---
+id: integer
+country_code: character varying
+region: character varying
+city_name: character varying
+latitude: double precision
+longitude: double precision

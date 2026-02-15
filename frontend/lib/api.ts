@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import useSWR from 'swr';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = 'http://localhost:4000/api';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -58,7 +58,7 @@ export function useHeatmap(journalId?: number, scope: 'readership' | 'traffic' =
 }
 
 export function usePulse(onEvent: (event: any) => void) {
-    const WS_URL = 'ws://localhost:3001/api/activity/pulse';
+    const WS_URL = 'ws://localhost:4000/api/activity/pulse';
     const ws = useRef<WebSocket | null>(null);
     const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -134,5 +134,17 @@ export function usePulse(onEvent: (event: any) => void) {
         };
     }, [onEvent]);
 
-    return ws.current;
+    return undefined; // We don't need to return the socket for current use cases
+}
+
+export function useActivityFeed() {
+    const { data, error, isLoading, mutate } = useSWR(`${API_BASE}/activity/feed`, fetcher, {
+        refreshInterval: 10000 // Refresh every 10 seconds to keep list in sync
+    });
+    return {
+        events: data || [],
+        isLoading,
+        isError: error,
+        mutate
+    };
 }

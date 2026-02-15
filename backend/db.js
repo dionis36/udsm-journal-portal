@@ -1,8 +1,13 @@
 const { Pool } = require('pg');
+require('dotenv').config();
 
 // Create a new pool using connection details from environment variables
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    // QUICK WIN: Prevent long-running queries from hanging the server
+    statement_timeout: 10000, // 10 seconds
+    query_timeout: 10000,     // 10 seconds
+    connectionTimeoutMillis: 5000, // 5 seconds to connect
     // Add SSL if production requires it (Heroku/Render usually do)
     // ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });

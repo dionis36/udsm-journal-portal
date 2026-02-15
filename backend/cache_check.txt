@@ -1,0 +1,123 @@
+--- Cache Content (Top 20) ---
+[
+  {
+    "grid_center": "POINT(13.4 52.5)",
+    "weight": "52",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(116.4 39.9)",
+    "weight": "48",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(-74 40.7)",
+    "weight": "48",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(39.2 -6.8)",
+    "weight": "44",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(-43.2 -22.9)",
+    "weight": "41",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(-0.1 51.5)",
+    "weight": "37",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(18.4 -33.9)",
+    "weight": "33",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(72.9 19.1)",
+    "weight": "33",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(36.8 -1.3)",
+    "weight": "29",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(3.4 6.5)",
+    "weight": "29",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(151.2 -33.9)",
+    "weight": "26",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(139.6 35.7)",
+    "weight": "24",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(116.4 39.9)",
+    "weight": "20",
+    "journal_id": 1,
+    "event_type": "download"
+  },
+  {
+    "grid_center": "POINT(35.7 -6.2)",
+    "weight": "20",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(151.2 -33.9)",
+    "weight": "18",
+    "journal_id": 1,
+    "event_type": "download"
+  },
+  {
+    "grid_center": "POINT(-43.1 -22.9)",
+    "weight": "18",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(36.8 -1.3)",
+    "weight": "16",
+    "journal_id": 1,
+    "event_type": "download"
+  },
+  {
+    "grid_center": "POINT(31.2 30)",
+    "weight": "15",
+    "journal_id": 1,
+    "event_type": "view"
+  },
+  {
+    "grid_center": "POINT(39.2 -6.8)",
+    "weight": "15",
+    "journal_id": 1,
+    "event_type": "download"
+  },
+  {
+    "grid_center": "POINT(-43.2 -22.9)",
+    "weight": "14",
+    "journal_id": 1,
+    "event_type": "download"
+  }
+]

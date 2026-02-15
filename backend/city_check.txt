@@ -1,0 +1,2 @@
+Rows with city: 0
+Total rows: 1000

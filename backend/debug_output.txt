@@ -1,0 +1,47 @@
+--- Sample Metrics (WHERE city IS NOT NULL) ---
+[]
+--- Sample GeoIP Cities ---
+[
+  {
+    "city_name": "Dar es Salaam",
+    "country_code": "TZ"
+  },
+  {
+    "city_name": "Dodoma",
+    "country_code": "TZ"
+  },
+  {
+    "city_name": "Mwanza",
+    "country_code": "TZ"
+  },
+  {
+    "city_name": "Arusha",
+    "country_code": "TZ"
+  },
+  {
+    "city_name": "Mbeya",
+    "country_code": "TZ"
+  },
+  {
+    "city_name": "Morogoro",
+    "country_code": "TZ"
+  },
+  {
+    "city_name": "Tanga",
+    "country_code": "TZ"
+  },
+  {
+    "city_name": "Kahama",
+    "country_code": "TZ"
+  },
+  {
+    "city_name": "Tabora",
+    "country_code": "TZ"
+  },
+  {
+    "city_name": "Zanzibar City",
+    "country_code": "TZ"
+  }
+]
+--- Test Join ---
+Join matches: 0

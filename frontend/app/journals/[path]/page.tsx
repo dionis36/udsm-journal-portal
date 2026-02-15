@@ -164,7 +164,7 @@ export default function JournalPage({ params }: { params: Promise<{ path: string
 
                                     <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-50">
                                         <a
-                                            href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/articles/${article.item_id}/pdf`}
+                                            href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/articles/${article.item_id}/pdf`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-xs font-bold text-white bg-udsm-blue px-3 py-1.5 rounded hover:bg-blue-800 transition-colors flex items-center gap-1"

@@ -12,8 +12,8 @@ export function PDFViewer({ articleId, articleTitle }: PDFViewerProps) {
     const [pdfError, setPdfError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    const pdfUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/articles/${articleId}/pdf`;
-    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/articles/${articleId}/pdf/download`;
+    const pdfUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/articles/${articleId}/pdf`;
+    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/articles/${articleId}/pdf/download`;
 
     const handleDownload = async () => {
         try {

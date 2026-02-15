@@ -25,7 +25,7 @@ export function ArticleStats({ articleId }: ArticleStatsProps) {
         async function fetchImpact() {
             try {
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/articles/${articleId}/impact`
+                    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/articles/${articleId}/impact`
                 );
 
                 if (!response.ok) {

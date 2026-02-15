@@ -28,7 +28,7 @@ export function ArticleMetrics({ articleId }: ArticleMetricsProps) {
         async function fetchMetrics() {
             try {
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/articles/${articleId}/metrics`
+                    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/articles/${articleId}/metrics`
                 );
 
                 if (!response.ok) {

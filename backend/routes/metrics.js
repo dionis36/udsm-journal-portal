@@ -90,8 +90,8 @@ module.exports = async function (fastify, opts) {
             const { event_type, journal_id, scope } = request.query;
             let query = `
                 SELECT 
-                    ST_X(location_point::geometry) as lng, 
-                    ST_Y(location_point::geometry) as lat, 
+                    ST_X(ST_SnapToGrid(location_point::geometry, 0.1)) as lng, 
+                    ST_Y(ST_SnapToGrid(location_point::geometry, 0.1)) as lat, 
                     country_name,
                     country_code,
                     city_name,
@@ -173,11 +173,11 @@ module.exports = async function (fastify, opts) {
         try {
             const query = `
                 SELECT 
-                    COUNT(*) as total_hits,
+                    COALESCE(SUM(weight), 0) as total_hits,
                     COUNT(DISTINCT item_id) as total_articles,
                     COUNT(DISTINCT country_name) as total_countries,
                     AVG(session_duration) as avg_duration,
-                    COUNT(*) FILTER (WHERE event_type = 'download') as total_downloads
+                    COALESCE(SUM(weight) FILTER (WHERE event_type = 'download'), 0) as total_downloads
                 FROM readership_geodata
             `;
             const result = await fastify.db.query(query);

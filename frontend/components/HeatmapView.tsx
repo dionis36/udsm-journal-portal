@@ -31,6 +31,8 @@ interface HeatmapViewProps {
     isLoading?: boolean;
     viewMode: 'readership' | 'traffic';
     onModeChange: (mode: 'readership' | 'traffic') => void;
+    activeLocation?: { lat: number; lng: number } | null;
+    onLocationSelect?: (location: any) => void;
 }
 
 interface Ripple {
@@ -40,9 +42,9 @@ interface Ripple {
 }
 
 const INITIAL_VIEW_STATE = {
-    longitude: 34.8,
-    latitude: -6.3,
-    zoom: 3,
+    longitude: 0,
+    latitude: 20,
+    zoom: 1.8,
     pitch: 0,
     bearing: 0,
     transitionDuration: 0
@@ -51,25 +53,23 @@ const INITIAL_VIEW_STATE = {
 const DARK_MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 const LIGHT_MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 
-export function HeatmapView({ data, isLoading, viewMode, onModeChange }: HeatmapViewProps) {
+export function HeatmapView({ data, isLoading, viewMode, onModeChange, activeLocation, onLocationSelect }: HeatmapViewProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [ripples, setRipples] = useState<Ripple[]>([]);
-    const [mapTheme, setMapTheme] = useState<'light' | 'dark'>('dark');
-    const [viewState, setViewState] = useState<any>(INITIAL_VIEW_STATE);
+    const [rippleState, setRipples] = useState<Ripple[]>([]);
+    const [mapTheme, setMapTheme] = useState<'light' | 'dark'>('light');
+
+    // PERFORMANCE FIX: Use useRef for viewState to avoid React re-renders on every pan/zoom
+    const viewStateRef = useRef<any>(INITIAL_VIEW_STATE);
+    const [, forceUpdate] = useState({}); // Minimal triggger for deliberate UI syncs
+
     const [hoverInfo, setHoverInfo] = useState<any>(null);
-    const [clickedInfo, setClickedInfo] = useState<any>(null);
-    const [locationEvents, setLocationEvents] = useState<any[]>([]);
-    const [isEventLoading, setIsEventLoading] = useState(false);
-    const [isStable, setIsStable] = useState(false);
-    const [glContext, setGlContext] = useState<WebGLRenderingContext | WebGL2RenderingContext | null>(null);
+    const [localClickedInfo, setLocalClickedInfo] = useState<any>(null);
+    const [isDeviceReady, setIsDeviceReady] = useState(false);
 
     useEffect(() => {
         setMounted(true);
-        // Delay stability to allow context to provision
-        const timer = setTimeout(() => setIsStable(true), 1000);
-        return () => clearTimeout(timer);
     }, []);
 
     const handlePulse = useCallback((event: any) => {
@@ -83,117 +83,128 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange }: Heatmap
 
     usePulse(handlePulse);
 
-    const fetchLocationEvents = useCallback(async (info: any) => {
-        setIsEventLoading(true);
-        try {
-            const { lng, lat } = info.geometry.coordinates;
-            // Removed city/country fallback to ensure high-precision coordinate matching
-            const res = await fetch(`http://localhost:3001/api/metrics/location-events?lng=${lng}&lat=${lat}`);
-            const data = await res.json();
-            setLocationEvents(data);
-        } catch (err) {
-            console.error('Failed to fetch events:', err);
-        } finally {
-            setIsEventLoading(false);
-        }
-    }, []);
-
     const onPointClick = useCallback((info: any) => {
         if (info.object) {
-            setClickedInfo(info.object);
-            fetchLocationEvents(info.object);
-            setViewState((prev: any) => ({
-                ...prev,
-                longitude: info.object.geometry.coordinates[0],
-                latitude: info.object.geometry.coordinates[1],
+            setLocalClickedInfo(info.object);
+            if (onLocationSelect) {
+                onLocationSelect({
+                    lat: info.object.geometry?.coordinates[1] || info.object.coordinates?.[1],
+                    lng: info.object.geometry?.coordinates[0] || info.object.coordinates?.[0],
+                    ...info.object.properties
+                });
+            }
+        }
+    }, [onLocationSelect]);
+
+    const onViewStateChange = useCallback(({ viewState }: any) => {
+        viewStateRef.current = viewState;
+        // PERFORMANCE FIX: Prevent "Cannot update during render" warning by scheduling update
+        requestAnimationFrame(() => {
+            forceUpdate({});
+        });
+    }, []);
+
+    const onDeviceInitialized = useCallback((device: any) => {
+        console.log('[Heatmap] WebGL Device Ready');
+        setGpuDevice(device);
+        setIsDeviceReady(true);
+    }, []);
+
+
+
+    // Sync Map to Active Location (DISABLED for user control)
+    /*
+    useEffect(() => {
+        if (activeLocation) {
+            viewStateRef.current = {
+                ...viewStateRef.current,
+                longitude: activeLocation.lng,
+                latitude: activeLocation.lat,
                 zoom: 8,
                 transitionDuration: 2000,
                 transitionInterpolator: new FlyToInterpolator()
-            }));
-        } else {
-            setClickedInfo(null);
-            setLocationEvents([]);
+            };
+            forceUpdate({});
         }
-    }, [fetchLocationEvents]);
-
-    const onMapLoad = useCallback((event: any) => {
-        const gl = event.target.getCanvas().getContext('webgl2') || event.target.getCanvas().getContext('webgl');
-        if (gl) {
-            console.log('[Heatmap] WebGL Context Captured');
-            setGlContext(gl);
-        }
-    }, []);
+    }, [activeLocation]);
+    */
 
     const COLOR_RANGES = useMemo(() => {
+        // Theme-aware colors
         if (mapTheme === 'dark') {
             return {
-                readership: [[1, 22, 39], [0, 102, 204], [102, 178, 255], [255, 204, 0], [255, 255, 102], [255, 255, 255]],
-                traffic: [[1, 22, 39], [0, 204, 204], [102, 255, 255], [0, 255, 153], [153, 255, 204], [255, 255, 255]]
+                readership: [[247, 188, 74], [255, 120, 0], [255, 60, 0]],
+                traffic: [[0, 204, 204], [102, 255, 255], [0, 255, 153]]
             };
         }
-        // High contrast for Light Theme (No white hits)
+        // Light theme needs darker/richer colors to stand out against white
         return {
-            readership: [[214, 219, 223], [174, 182, 191], [22, 102, 158], [11, 82, 131], [2, 62, 101]],
-            traffic: [[212, 239, 252], [129, 212, 250], [1, 135, 204], [1, 87, 155], [1, 71, 128]]
+            readership: [[245, 124, 0], [211, 47, 47], [194, 24, 91]],
+            traffic: [[0, 150, 136], [0, 121, 107], [0, 77, 64]]
         };
     }, [mapTheme]);
+    const [gpuDevice, setGpuDevice] = useState<any>(null);
 
+    // Initial ViewState setup
+    const initialViewState = useMemo(() => ({
+        longitude: 34.8888,
+        latitude: -6.3690,
+        zoom: 4.5,
+        pitch: 0,
+        bearing: 0
+    }), []);
+
+    const [tileVersion] = useState(Date.now());
+
+    // Layers memoization
     const layers = useMemo(() => {
-        if (!mounted || !isStable) return [];
+        // CRITICAL BUG FIX: Never render layers until GPU Device is ready
+        // This prevents the "Cannot read properties of undefined (reading 'maxTextureDimension2D')" error
+        if (!mounted || !isDeviceReady || !gpuDevice) return [];
 
-        // Intensity decay: 3.0 at zoom 3, down to ~0.5 at zoom 8
-        const dynamicIntensity = Math.max(0.4, 3 * Math.pow(0.75, Math.max(0, viewState.zoom - 3)));
-
-        // Radius scale: 60/80 at zoom 3, down to ~12/16 at zoom 8
-        const dynamicRadius = Math.max(10, (isFullscreen ? 80 : 60) * Math.pow(0.7, Math.max(0, viewState.zoom - 3)));
+        const activeModeColor = (COLOR_RANGES as any)[viewMode][1];
 
         return [
-            new HeatmapLayer({
-                id: 'heatmap-layer-' + viewMode,
-                data: data?.features || [],
-                getPosition: (d: any) => d.geometry.coordinates,
-                getWeight: (d: any) => d.properties.weight || 1,
-                radiusPixels: dynamicRadius,
-                intensity: dynamicIntensity,
-                threshold: 0.05,
-                colorRange: (COLOR_RANGES as any)[viewMode],
-                updateTriggers: {
-                    colorRange: [viewMode, mapTheme],
-                    radiusPixels: [viewState.zoom, isFullscreen],
-                    intensity: [viewState.zoom]
-                }
-            }),
+            // MVT Point Layer (Large Datasets)
             new MVTLayer({
-                id: 'mvt-layer',
-                data: 'http://localhost:3001/api/tiles/{z}/{x}/{y}.mvt',
-                getFillColor: [22, 102, 158, mapTheme === 'dark' ? 15 : 30], // UDSM Blue
-                getLineColor: mapTheme === 'dark' ? [255, 255, 255, 10] : [0, 0, 0, 10],
-                lineWidthMinPixels: 0.5,
-                loadOptions: {
-                    mvt: {
-                        shape: 'geojson'
-                    }
+                id: 'mvt-heatmap',
+                data: `http://localhost:4000/api/tiles/{z}/{x}/{y}.mvt?v=${tileVersion}`, // Stable Cache Bust
+                binary: false, // Force GeoJSON format for safe accessors
+                pickable: true,
+                onHover: (info: any) => setHoverInfo(info.object ? info : null),
+                onClick: onPointClick,
+                autoHighlight: false,
+                renderSubLayers: (props: any) => {
+                    return new ScatterplotLayer({
+                        ...props,
+                        getPosition: (d: any) => d.geometry.coordinates,
+                        getFillColor: (d: any) => {
+                            const weight = Number(d.properties.weight) || 1;
+                            const intensity = Math.min(255, 150 + Math.log(weight) * 40);
+                            return [...activeModeColor, intensity];
+                        },
+                        getRadius: (d: any) => {
+                            const weight = Number(d.properties.weight) || 1;
+                            return Math.min(60, 6 + Math.log2(weight) * 4); // Even larger for visibility
+                        },
+                        radiusMinPixels: 5,
+                        radiusMaxPixels: 60,
+                        pointRadiusUnits: 'pixels',
+                        stroked: true,
+                        lineWidthMinPixels: 1,
+                        getLineColor: mapTheme === 'dark' ? [255, 255, 255, 50] : [0, 0, 0, 20]
+                    });
                 },
                 updateTriggers: {
-                    getFillColor: [mapTheme],
-                    getLineColor: [mapTheme]
+                    getFillColor: [mapTheme, viewMode],
+                    getRadius: [viewMode] // Trigger redraw if radius logic changes
                 }
             } as any),
-            new ScatterplotLayer({
-                id: 'interaction-layer',
-                data: data?.features || [],
-                getPosition: (d: any) => d.geometry.coordinates,
-                getRadius: (d: any) => 30000,
-                getFillColor: [255, 255, 255, 0],
-                pickable: true,
-                radiusMinPixels: 10,
-                radiusMaxPixels: 40,
-                onHover: (info: any) => setHoverInfo(info.object ? info : null),
-                onClick: onPointClick
-            }),
+
+            // LIVE FEED RIPILES
             new ScatterplotLayer({
                 id: 'ripple-layer',
-                data: ripples,
+                data: rippleState,
                 getPosition: (d: Ripple) => d.coordinates,
                 getRadius: (d: Ripple) => Math.min(1000000, (Date.now() - d.timestamp) * 500),
                 getFillColor: (d: Ripple) => [247, 188, 74, Math.max(0, 255 * (1 - (Date.now() - d.timestamp) / 3000))] as [number, number, number, number],
@@ -202,9 +213,23 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange }: Heatmap
                 stroked: true,
                 lineWidthMinPixels: 2,
                 getLineColor: (d: Ripple) => [...(mapTheme === 'dark' ? [255, 255, 255] : [22, 102, 158]), Math.max(0, 255 * (1 - (Date.now() - d.timestamp) / 3000))] as [number, number, number, number]
-            })
-        ];
-    }, [viewMode, isFullscreen, ripples, mounted, data, onPointClick, isStable, viewState.zoom, mapTheme]);
+            }),
+
+            // ACTIVE SELECTION HIGHLIGHT
+            activeLocation ? new ScatterplotLayer({
+                id: 'active-pin-highlight',
+                data: [{ position: [activeLocation.lng, activeLocation.lat] }],
+                getPosition: (d: any) => d.position,
+                getRadius: 5000,
+                radiusMinPixels: 10,
+                radiusMaxPixels: 40,
+                getFillColor: [247, 188, 74, 100],
+                stroked: true,
+                lineWidthMinPixels: 2,
+                getLineColor: [255, 255, 255, 255]
+            }) : null
+        ].filter(Boolean);
+    }, [viewMode, rippleState, mounted, onPointClick, isDeviceReady, gpuDevice, mapTheme, COLOR_RANGES, activeLocation, tileVersion]);
 
     const toggleFullscreen = useCallback(() => {
         if (!containerRef.current) return;
@@ -235,28 +260,22 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange }: Heatmap
             className={`relative w-full h-full ${mapTheme === 'dark' ? 'bg-slate-950 text-white' : 'bg-white text-slate-900'} rounded-2xl overflow-hidden group shadow-2xl border ${mapTheme === 'dark' ? 'border-white/5' : 'border-slate-200'} transition-all duration-700 font-sans`}
         >
             <DeckGL
-                viewState={viewState}
-                onViewStateChange={({ viewState }) => setViewState(viewState)}
+                initialViewState={viewStateRef.current}
+                onViewStateChange={onViewStateChange}
                 controller={true}
-                layers={layers}
+                layers={isDeviceReady ? layers : []}
+                onDeviceInitialized={onDeviceInitialized}
                 getCursor={({ isHovering }) => (isHovering ? 'pointer' : 'grab')}
-                onClick={(info) => {
-                    if (!info.object) {
-                        setClickedInfo(null);
-                        setLocationEvents([]);
-                    }
-                }}
                 parameters={{
                     blendColorOperation: 'add',
                     blendColorSrcFactor: 'src-alpha',
-                    blendColorDstFactor: 'one',
+                    blendColorDstFactor: mapTheme === 'dark' ? 'one' : 'one-minus-src-alpha',
                     depthTest: false,
                 } as any}
             >
                 <Map
                     mapStyle={mapTheme === 'dark' ? DARK_MAP_STYLE : LIGHT_MAP_STYLE}
                     mapLib={maplibregl}
-                    onLoad={onMapLoad}
                     reuseMaps
                 >
                     <NavigationControl position="bottom-right" />
@@ -264,32 +283,34 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange }: Heatmap
             </DeckGL>
 
             {/* HOVER TOOLTIP */}
-            {hoverInfo && !clickedInfo && (
-                <div
-                    className="absolute z-50 pointer-events-none bg-black/80 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl flex flex-col gap-1 min-w-[140px]"
-                    style={{ left: hoverInfo.x + 15, top: hoverInfo.y - 40 }}
-                >
-                    <div className="flex items-center gap-2">
-                        <MapPin size={12} className="text-udsm-gold" />
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${mapTheme === 'dark' ? 'text-white/40' : 'text-slate-400'} font-montserrat`}>Location Details</span>
+            {
+                hoverInfo && !localClickedInfo && (
+                    <div
+                        className="absolute z-50 pointer-events-none bg-black/80 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-2xl flex flex-col gap-1 min-w-[140px]"
+                        style={{ left: hoverInfo.x + 15, top: hoverInfo.y - 40 }}
+                    >
+                        <div className="flex items-center gap-2">
+                            <MapPin size={12} className="text-udsm-gold" />
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${mapTheme === 'dark' ? 'text-white/40' : 'text-slate-400'} font-montserrat`}>Location Details</span>
+                        </div>
+                        <div className={`text-sm font-bold tracking-tight flex items-center gap-2 ${mapTheme === 'dark' ? 'text-white' : 'text-slate-900'} font-noto-serif`}>
+                            {hoverInfo.object.properties.country_code && (
+                                <img
+                                    src={`https://flagcdn.com/w20/${hoverInfo.object.properties.country_code.toLowerCase()}.png`}
+                                    alt=""
+                                    className="w-4 h-3 rounded-sm"
+                                />
+                            )}
+                            {hoverInfo.object.properties.city || 'Regional Center'}, {hoverInfo.object.properties.country}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[9px] font-black text-udsm-gold bg-udsm-gold/10 px-1.5 py-0.5 rounded border border-udsm-gold/20 uppercase">
+                                {hoverInfo.object.properties.weight} {viewMode === 'readership' ? 'Reads' : 'Visits'}
+                            </span>
+                        </div>
                     </div>
-                    <div className={`text-sm font-bold tracking-tight flex items-center gap-2 ${mapTheme === 'dark' ? 'text-white' : 'text-slate-900'} font-noto-serif`}>
-                        {hoverInfo.object.properties.country_code && (
-                            <img
-                                src={`https://flagcdn.com/w20/${hoverInfo.object.properties.country_code.toLowerCase()}.png`}
-                                alt=""
-                                className="w-4 h-3 rounded-sm"
-                            />
-                        )}
-                        {hoverInfo.object.properties.city || 'Regional Center'}, {hoverInfo.object.properties.country}
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[9px] font-black text-udsm-gold bg-udsm-gold/10 px-1.5 py-0.5 rounded border border-udsm-gold/20 uppercase">
-                            {hoverInfo.object.properties.weight} {viewMode === 'readership' ? 'Reads' : 'Visits'}
-                        </span>
-                    </div>
-                </div>
-            )}
+                )
+            }
 
             {/* MINIMAL CONTROLS OVERLAY - Positioned at top-right for cleanliness */}
             <div className="absolute top-4 right-4 z-50 flex gap-2 pointer-events-auto">
@@ -324,14 +345,16 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange }: Heatmap
                 </button>
             </div>
 
-            {isLoading && (
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
-                    <div className="bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-1.5 rounded-full flex items-center gap-2 animation-pulse">
-                        <div className="w-2 h-2 bg-udsm-gold rounded-full animate-pulse" />
-                        <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest leading-none">Syncing Pulse...</span>
+            {
+                isLoading && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
+                        <div className="bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-1.5 rounded-full flex items-center gap-2 animation-pulse">
+                            <div className="w-2 h-2 bg-udsm-gold rounded-full animate-pulse" />
+                            <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest leading-none">Syncing Pulse...</span>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             <style jsx global>{`
                 @keyframes slideUp {
@@ -342,6 +365,6 @@ export function HeatmapView({ data, isLoading, viewMode, onModeChange }: Heatmap
                     animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
                 }
             `}</style>
-        </div>
+        </div >
     );
 }

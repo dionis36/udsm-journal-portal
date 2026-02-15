@@ -1,0 +1,69 @@
+Total Rows: 2000
+
+Distinct Locations: 1000
+
+--- Top 10 Locations ---
+[
+  {
+    "loc": null,
+    "city_name": "Historical Audit",
+    "country_name": "Unknown",
+    "cnt": "1000"
+  },
+  {
+    "loc": "POINT(18.38538038066098 -33.940049467931054)",
+    "city_name": "Cape Town",
+    "country_name": "South Africa",
+    "cnt": "1"
+  },
+  {
+    "loc": "POINT(116.38503095457952 39.93457850063097)",
+    "city_name": "Beijing",
+    "country_name": "China",
+    "cnt": "1"
+  },
+  {
+    "loc": "POINT(139.64961293272285 35.64049668372124)",
+    "city_name": "Tokyo",
+    "country_name": "Japan",
+    "cnt": "1"
+  },
+  {
+    "loc": "POINT(39.23183193236815 -6.816965280345403)",
+    "city_name": "Dar es Salaam",
+    "country_name": "Tanzania",
+    "cnt": "1"
+  },
+  {
+    "loc": "POINT(-73.96506615364456 40.72548072462009)",
+    "city_name": "New York",
+    "country_name": "United States",
+    "cnt": "1"
+  },
+  {
+    "loc": "POINT(116.38204752119869 39.90150184712587)",
+    "city_name": "Beijing",
+    "country_name": "China",
+    "cnt": "1"
+  },
+  {
+    "loc": "POINT(116.41630457336022 39.8652599954793)",
+    "city_name": "Beijing",
+    "country_name": "China",
+    "cnt": "1"
+  },
+  {
+    "loc": "POINT(-43.18236685258422 -22.895948770274877)",
+    "city_name": "Rio de Janeiro",
+    "country_name": "Brazil",
+    "cnt": "1"
+  },
+  {
+    "loc": "POINT(39.19283461245728 -6.761044811580807)",
+    "city_name": "Dar es Salaam",
+    "country_name": "Tanzania",
+    "cnt": "1"
+  }
+]
+
+Cache Rows: 100
