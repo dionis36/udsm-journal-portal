@@ -17,6 +17,7 @@ const HeatmapView = dynamic(() => import("@/components/HeatmapView").then(mod =>
 });
 
 import { MapPin, Activity, ChevronRight, Play, Pause, SkipForward, SkipBack, RefreshCw, Globe, BookOpen, Users } from "lucide-react";
+import Link from 'next/link';
 
 export default function Dashboard() {
   const { journals, isLoading: journalsLoading } = useJournals();

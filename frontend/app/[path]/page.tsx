@@ -17,6 +17,7 @@ const HeatmapView = dynamic(() => import("@/components/HeatmapView").then(mod =>
 });
 import { MapPin, Activity, ChevronRight, Play, Pause, SkipForward, SkipBack, RefreshCw } from "lucide-react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 export default function JournalPage() {
   const { path } = useParams();
@@ -239,9 +240,11 @@ export default function JournalPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-sm font-black text-slate-900 leading-tight font-noto-serif italic transition-all duration-300">
-                    "{currentActive?.article || 'Waiting for activity records...'}"
-                  </p>
+                  <Link href={`/articles/${currentActive?.item_id || currentActive?.id}`}>
+                    <p className="text-sm font-black text-slate-900 leading-tight font-noto-serif italic transition-all duration-300 hover:text-[#16669E] hover:underline cursor-pointer">
+                      "{currentActive?.article || 'Waiting for activity records...'}"
+                    </p>
+                  </Link>
                 </div>
 
                 {/* Progress Bar for Auto-Feed */}
