@@ -69,17 +69,40 @@ export default function Home() {
     }).catch(err => console.error('Failed to fetch data:', err));
   }, []);
 
-  const handleMapInteraction = (location: any) => {
+  const handleMapInteraction = async (location: any) => {
     if (location) {
       setIsPlaying(false);
+
+      const isCluster = location.weight && location.weight > 1;
+      let clusterArticles = [];
+      let topArticleTitle = location.article_title;
+
+      // Logic: If it's a cluster, fetch the top articles locally
+      if (isCluster) {
+        try {
+          const res = await fetch(`http://localhost:4000/api/metrics/location-events?lng=${location.lng}&lat=${location.lat}`);
+          const events = await res.json();
+          if (events && events.length > 0) {
+            clusterArticles = events;
+            // Use the most recent article title as the "Top" one for the summary
+            topArticleTitle = events[0].article_title;
+          }
+        } catch (e) {
+          console.error("Failed to fetch cluster details", e);
+        }
+      }
+
       setManualSelection({
         city: location.city || 'Selected Location',
-        country: location.country, // Allow null to trigger Intl.DisplayNames fallback
+        country: location.country,
         country_code: location.country_code || 'TZ',
         lat: location.lat,
         lng: location.lng,
         time: "Interacting...",
-        article: location.article_title || "User Exploring Location" // Use real title if available
+        weight: location.weight,
+        articles: clusterArticles, // Store the list
+        // Formatted for Top Bar "Compact View"
+        article: topArticleTitle || (isCluster ? `Aggregated Readership: ${location.weight} Interactions` : "User Exploring Location")
       });
     } else {
       setManualSelection(null);

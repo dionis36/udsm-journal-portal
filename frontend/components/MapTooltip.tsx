@@ -66,11 +66,15 @@ export function MapTooltip({ info, mapTheme, viewMode }: MapTooltipProps) {
                 </div>
 
                 {/* CONTENT: Article (only if available) */}
-                {article_title && (
+                {article_title ? (
                     <p className={`text-xs leading-relaxed font-medium italic font-noto-serif line-clamp-2 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
                         "{article_title}..."
                     </p>
-                )}
+                ) : weight > 1 ? (
+                    <p className={`text-xs leading-relaxed font-bold tracking-wide ${isDark ? 'text-udsm-gold' : 'text-[#16669E]'}`}>
+                        Aggregated Readership
+                    </p>
+                ) : null}
 
                 {/* FOOTER: Inline Stats */}
                 <div className={`flex items-center gap-2 pt-1 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
