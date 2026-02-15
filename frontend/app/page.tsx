@@ -24,6 +24,7 @@ export default function Home() {
   const heatmapLoading = false;
   // const { data: heatmapData, isLoading: heatmapLoading } = useHeatmap(undefined, viewMode);
   const [summary, setSummary] = useState<any>(null);
+  const [geoData, setGeoData] = useState<any[]>([]);
 
   // Feed State
   const [isPlaying, setIsPlaying] = useState(false);
@@ -58,10 +59,14 @@ export default function Home() {
   }, [manualSelection]);
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/metrics/impact-summary')
-      .then(r => r.json())
-      .then(data => setSummary(data))
-      .catch(err => console.error('Failed to fetch summary:', err));
+    // Fetch only data needed for minimal footer
+    Promise.all([
+      fetch('http://localhost:4000/api/metrics/impact-summary').then(r => r.json()),
+      fetch('http://localhost:4000/api/metrics/geographic-breakdown').then(r => r.json())
+    ]).then(([summaryData, geo]) => {
+      setSummary(summaryData);
+      setGeoData(geo);
+    }).catch(err => console.error('Failed to fetch data:', err));
   }, []);
 
   const handleMapInteraction = (location: any) => {
@@ -225,19 +230,34 @@ export default function Home() {
               />
             </div>
 
-            {/* 3. Performance Metrics Footer (The "Win" Stats) */}
-            <div className="px-8 py-6 bg-slate-50 border-t border-slate-200 grid grid-cols-3 gap-12 divide-x divide-slate-100">
-              <div className="flex flex-col items-center">
-                <span className="text-2xl font-black text-slate-900">{summary?.total_papers || 156}</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Total Papers</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-2xl font-black text-[#16669E]">{summary?.total_downloads || 3281}</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1 text-center">Total Downloads</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-2xl font-black text-udsm-gold">{summary?.total_downloads_past_year || 1240}</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1 text-center">Past Year Yield</span>
+            {/* Minimal OJS-Style Stats Footer */}
+            <div className="px-8 py-6 bg-white border-t border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-900 font-bold">{summary?.total_papers || 0}</span>
+                    <span className="text-slate-500">articles</span>
+                  </div>
+                  <div className="w-px h-4 bg-slate-300"></div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-900 font-bold">{summary?.total_downloads || 0}</span>
+                    <span className="text-slate-500">total reads</span>
+                  </div>
+                  <div className="w-px h-4 bg-slate-300"></div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-900 font-bold">{geoData?.length || 0}</span>
+                    <span className="text-slate-500">countries</span>
+                  </div>
+                </div>
+
+                <a
+                  href="/stats"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#16669E] hover:bg-[#16669E]/5 rounded-lg transition-colors"
+                >
+                  <span>📊</span>
+                  <span>View Detailed Analytics</span>
+                  <ChevronRight size={16} />
+                </a>
               </div>
             </div>
           </section>

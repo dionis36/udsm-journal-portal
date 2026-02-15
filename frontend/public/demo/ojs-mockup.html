@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OJS Journal Issue - TJPSD with UDSM Analytics</title>
+    
+    <!-- Simulate OJS default styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .ojs-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #16669E 100%);
+            color: white;
+            padding: 24px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .ojs-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .ojs-header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .ojs-navigation {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0;
+        }
+
+        .ojs-navigation ul {
+            list-style: none;
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .ojs-navigation li {
+            margin: 0;
+        }
+
+        .ojs-navigation a {
+            display: block;
+            padding: 14px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .ojs-navigation a:hover {
+            background: #f8f9fa;
+            border-bottom-color: #16669E;
+            color: #16669E;
+        }
+
+        .ojs-navigation a.active {
+            border-bottom-color: #16669E;
+            color: #16669E;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+
+        .main-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .sidebar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .sidebar h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1e3a8a;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 12px;
+        }
+
+        .sidebar a {
+            color: #16669E;
+            text-decoration: none;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .sidebar a:hover {
+            text-decoration: underline;
+        }
+
+        .issue-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .issue-header h2 {
+            font-size: 28px;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+
+        .issue-meta {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .article-list {
+            margin-bottom: 40px;
+        }
+
+        .article-item {
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .article-item:last-child {
+            border-bottom: none;
+        }
+
+        .article-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+
+        .article-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .article-title a:hover {
+            color: #16669E;
+            text-decoration: underline;
+        }
+
+        .article-authors {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .article-meta {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .analytics-section {
+            margin: 40px 0;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px dashed #16669E;
+        }
+
+        .analytics-section h3 {
+            font-size: 20px;
+            color: #1e3a8a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analytics-section h3::before {
+            content: "📊";
+            font-size: 24px;
+        }
+
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- OJS Header -->
+    <div class="ojs-header">
+        <h1>Tanzania Journal of Population Studies and Development</h1>
+        <p>ISSN: 0856-8863 | Published by University of Dar es Salaam</p>
+    </div>
+
+    <!-- OJS Navigation -->
+    <nav class="ojs-navigation">
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#" class="active">Current</a></li>
+            <li><a href="#">Archives</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Submissions</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Issue Header -->
+            <div class="issue-header">
+                <h2>Vol. 32 No. 2 (2025)</h2>
+                <div class="issue-meta">
+                    Published: December 2025 | 9 Articles
+                </div>
+            </div>
+
+            <!-- ============================================ -->
+            <!-- EMBEDDED UDSM ANALYTICS WIDGET               -->
+            <!-- ============================================ -->
+            <div class="analytics-section">
+                <h3>Readership Analytics Dashboard</h3>
+                <p style="font-size: 14px; color: #666; margin-bottom: 16px;">
+                    Real-time readership insights for this journal, powered by UDSM Analytics
+                </p>
+                
+                <!-- Widget Container -->
+                <div 
+                    id="udsm-analytics-widget" 
+                    data-journal="tjpsd" 
+                    data-scope="single"
+                    data-theme="light"
+                    data-height="900"
+                >
+                    <!-- Widget will be injected here -->
+                    <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 8px;">
+                        <div style="width: 48px; height: 48px; border: 4px solid #16669E; border-top-color: transparent; border-radius: 50%; margin: 0 auto 16px; animation: spin 1s linear infinite;"></div>
+                        <p style="color: #666; font-size: 14px;">Loading UDSM Analytics Widget...</p>
+                    </div>
+                </div>
+            </div>
+            <!-- ============================================ -->
+
+            <!-- Article Listings -->
+            <div class="article-list">
+                <h3 style="font-size: 20px; margin-bottom: 20px; color: #1e3a8a;">Articles</h3>
+                
+                <div class="article-item">
+                    <div class="article-title">
+                        <a href="#">Assessing unmet need for contraception between never married, married and cohabiting women in Ghana</a>
+                    </div>
+                    <div class="article-authors">University of Ghana</div>
+                    <div class="article-meta">Pages 1-15 | PDF</div>
+                </div>
+
+                <div class="article-item">
+                    <div class="article-title">
+                        <a href="#">Application of generalized linear model for correlated health outcomes of children under-five in Tanzania</a>
+                    </div>
+                    <div class="article-authors">University of Dar es Salaam</div>
+                    <div class="article-meta">Pages 16-28 | PDF</div>
+                </div>
+
+                <div class="article-item">
+                    <div class="article-title">
+                        <a href="#">The impact of high living costs, urban agglomeration, and inequality on core economic drivers</a>
+                    </div>
+                    <div class="article-authors">Sub-Saharan African Research Center</div>
+                    <div class="article-meta">Pages 29-45 | PDF</div>
+                </div>
+
+                <div class="article-item">
+                    <div class="article-title">
+                        <a href="#">Income inequality-fertility nexus: Do differing levels of economic development matter?</a>
+                    </div>
+                    <div class="article-authors">University of Dar es Salaam</div>
+                    <div class="article-meta">Pages 46-62 | PDF</div>
+                </div>
+
+                <div class="article-item">
+                    <div class="article-title">
+                        <a href="#">Rapid population growth and infrastructural challenges in Dodoma City, Tanzania</a>
+                    </div>
+                    <div class="article-authors">University of Dodoma</div>
+                    <div class="article-meta">Pages 63-78 | PDF</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h3>Navigation</h3>
+            <ul>
+                <li><a href="#">Current Issue</a></li>
+                <li><a href="#">Past Issues</a></li>
+                <li><a href="#">Search Articles</a></li>
+                <li><a href="#">Submit Article</a></li>
+            </ul>
+
+            <h3 style="margin-top: 30px;">Downloads</h3>
+            <ul>
+                <li><a href="#">Full Issue (PDF)</a></li>
+                <li><a href="#">Author Guidelines</a></li>
+            </ul>
+
+            <h3 style="margin-top: 30px;">Information</h3>
+            <ul>
+                <li><a href="#">For Authors</a></li>
+                <li><a href="#">For Reviewers</a></li>
+                <li><a href="#">For Librarians</a></li>
+            </ul>
+        </aside>
+    </div>
+
+    <!-- Widget Placeholder Script (simulates loading) -->
+    <script>
+        // This demonstrates how the widget would be loaded
+        // In production, this would load the actual React widget bundle
+        
+        console.log('%c🚀 UDSM Analytics Widget Demo', 'background: #16669E; color: white; padding: 8px; font-weight: bold;');
+        console.log('Widget Configuration:', {
+            journal: 'tjpsd',
+            scope: 'single',
+            theme: 'light',
+            height: 900
+        });
+        
+        // In production, you would load the widget like this:
+        // const script = document.createElement('script');
+        // script.src = 'https://analytics.udsm.ac.tz/widget.js';
+        // document.head.appendChild(script);
+        
+        // For this demo, we'll show a message
+        setTimeout(() => {
+            const widgetContainer = document.getElementById('udsm-analytics-widget');
+            widgetContainer.innerHTML = `
+                <div style="background: white; border-radius: 8px; padding: 40px; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+                    <h4 style="font-size: 20px; color: #1e3a8a; margin-bottom: 8px;">Widget Loading Demonstration</h4>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 24px;">
+                        In production, the full analytics dashboard would render here with:
+                    </p>
+                    <ul style="text-align: left; max-width: 500px; margin: 0 auto; color: #555; font-size: 14px; line-height: 1.8;">
+                        <li>✓ Impact Metrics Cards (JIF, CiteScore, SJR, h5-index)</li>
+                        <li>✓ Monthly Readership Trend Chart</li>
+                        <li>✓ Top 10 Countries Geographic Breakdown</li>
+                        <li>✓ Top 5 Most Read Articles</li>
+                        <li>✓ Real-time readership heatmap</li>
+                    </ul>
+                    <div style="margin-top: 24px; padding: 16px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #16669E;">
+                        <p style="font-size: 13px; color: #666; margin: 0;">
+                            <strong>Integration Code:</strong><br>
+                            <code style="background: white; padding: 2px 6px; border-radius: 3px; font-family: monospace;">&lt;div id="udsm-analytics-widget" data-journal="tjpsd"&gt;&lt;/div&gt;</code><br>
+                            <code style="background: white; padding: 2px 6px; border-radius: 3px; font-family: monospace;">&lt;script src="https://analytics.udsm.ac.tz/widget.js"&gt;&lt;/script&gt;</code>
+                        </p>
+                    </div>
+                </div>
+            `;
+        }, 1500);
+    </script>
+
+    <style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html>

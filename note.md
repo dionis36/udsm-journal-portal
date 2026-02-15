@@ -1,5 +1,20 @@
-new journals to consider:
-The following are the journals application (and database) with multiple journals. It is advised that your solution include analytics for each individual journal as well as aggregate for all hosted journals.
+
+
+
+
+
+## 🔵 Phase 3: Impact Metrics (Hours 37-60)
+**Goal**: Advanced Statistics & Citations.
+
+### 3.1 External API Integrations
+- [ ] **Crossref Proxy**: Fetch citation counts by DOI.
+- [ ] **Altmetrics**: Placeholder/Integration for social shares.
+
+### 3.2 Advanced Stats Logic
+- [ ] **JIF/CiteScore Display**: Render static metrics from `platform_journals`.
+- [ ] **Predictive Modeling**: Implement rolling "Live Impact Factor" calculation.
+- [ ] **Correlation Graph**: Chart.js/Recharts scatter plot for "Downloads vs Citations".
+- [ ] **Trend Calculation**: "Top 5 Read Articles this Week" (Redis Sorted Sets).
 
 
 
@@ -46,67 +61,6 @@ Manipulation Risk: Metrics can be skewed by excessive self-citation or "citation
 
 
 
-
-
-WHY ARE THE POINTS ON MAP SO HUGE ... FOR LIGHT THEME ... THEY ARE BIG ... FOR DARK THEME THEY HAVE A GLOWY OUTLINE .... REVERT TO THE PREVIOUS METHOD OF POINTS ON MAP .... THEY WHERE GOOD ... THEY ONLY NEED COLOR CHANGE ONLY ... SO PLEASE RETURN THEM
-
-
-I THINK UPTO THIS POINT YOU HAVE NOTICED THE ISSUE ON THE SLOWED FRAMES RATE ... THE INTERACTION ON THE MAP IS VERY SLOW ... WHY .... ITS NOT SMOOTH EXPERIENCE AT ALL INTERACTING WITH IT WHY
-
-create a plan to fix this
-
-
-To resolve the performance issues with your **Deck.gl** and **MapLibre** implementation, you must shift from a "client-heavy" data model to a "streaming-binary" model.
-
-Below are the identified causes and the high-performance solutions required to achieve the "High Ground" in your competition.
-
-### 1. Identified Causes of Slowness
-
-* **The JSON Parsing Bottleneck**: If you are fetching your 8MB historical data as a standard JSON file, the browser must stop everything to parse that text into JavaScript objects. This "freezes" the main thread, causing jerky zooms and slow loads.
-* **React State Overhead**: Storing 100,000+ points in a `useState` hook is a primary cause of lag. Every time a single point updates, React attempts to re-render the entire array, which is computationally expensive.
-* **Lack of Spatial Indexing**: If your backend is scanning the entire 8MB table for every zoom change instead of using a spatial index, the database response time will be too slow for smooth transitions.
-* **Main Thread Congestion**: Moving the map (zooming/panning) is a high-frequency event. If the CPU is busy calculating layer properties at the same time, the frame rate will drop below 60fps.
-
----
-
-### 2. The "Fast-Track" Solutions
-
-#### **A. Shift to Vector Tiles (MVT)**
-
-Instead of sending the whole 8MB file at once, use your PostGIS backend to generate **Mapbox Vector Tiles (MVT)**.
-
-* **The Logic**: The map only requests data for the specific "tile" the user is looking at. As you zoom in, it fetches more detail; as you zoom out, it fetches simplified "overviews."
-* **SQL Implementation**: Use `ST_AsMVT` in PostGIS to serve binary tiles directly to MapLibre. This reduces the initial load from 8MB to a few kilobytes per view.
-
-#### **B. Use Binary Data Formats (FlatGeobuf)**
-
-If you must load the whole dataset, stop using JSON. Use **Loaders.gl** with **FlatGeobuf**.
-
-* **Why**: FlatGeobuf is a binary format that Deck.gl can read directly into the GPU memory without the "parsing" phase. This allows 100,000 points to load almost instantly.
-
-#### **C. Bypass React State for Heavy Data**
-
-To keep the UI responsive, move the heavy map data out of React's state management.
-
-* **The Strategy**: Use a `useRef` to hold the data or a specialized store like **Zustand**. Pass the data to the Deck.gl `layers` prop directly. This ensures that a map update doesn't trigger a full React component re-render.
-
-#### **D. Database Optimization (GiST Indexing)**
-
-Ensure your PostgreSQL database is optimized for geographic "lookups" during zoom and pan events.
-
-* **Action**: Run the following command on your metrics table:
-`CREATE INDEX idx_metrics_location ON readership_geodata USING GIST (location_point);`
-* **Result**: This reduces query times from seconds to milliseconds, enabling the "fast transition" experience you need.
-
----
-
-### 3. Implementation Checklist for Smooth Transitions
-
-1. **Disable SSR**: Ensure your map component is loaded using `next/dynamic` with `{ ssr: false }` to prevent hydration mismatches and window errors.
-2. **Transition Interpolator**: Use Deck.gl's `FlyToInterpolator` for "Fast Transitions" between points. It handles the mathematical curve of the camera move on the GPU, keeping it silky smooth.
-3. **Coordinate Jittering**: If many hits are at the same city coordinate, use the `getOffset` or a "jitter" function in your Deck.gl layer to spread them out. This prevents "Z-fighting" where the GPU struggles to render overlapping points.
-
-By implementing the **MVT (Vector Tile)** strategy and **GiST indexing**, you will solve the "slow load" issue, while **Binary Data** and **SSR disabling** will fix the "jerky interaction" and "slow zoom" problems.
 
 
 
